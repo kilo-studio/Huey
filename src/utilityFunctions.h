@@ -14,6 +14,9 @@ float floatHunt(char* key);
 uint8_t Red(uint32_t color);
 uint8_t Green(uint32_t color);
 uint8_t Blue(uint32_t color);
+boolean writeJsonToSD(String filename, JsonObject& json);
+char* getJsonSD(String filename);
+JsonObject& getJsonObject(String filename);
 
 boolean writeJsonToSD(String filename, JsonObject& json){
   // open the file.
@@ -35,6 +38,52 @@ boolean writeJsonToSD(String filename, JsonObject& json){
   } else {
     // if the file didn't open, print an error:
     Serial.println(String("Error opening ") + filename);
+  }
+}
+
+boolean colorFromSD(String hourlyFile, String dailyFile){
+  JsonObject& currentJson = getJsonObject(hourlyFile);
+
+
+  return true;
+}
+
+JsonObject& getJsonObject(String filename){
+  // open the file for reading:
+  char* json = getJsonSD(filename);
+
+  StaticJsonBuffer<200> jsonBuffer;
+
+  JsonObject& root = jsonBuffer.parseObject(json);
+
+  // Step 5
+  if (!root.success()) {
+    Serial.println("parseObject() failed");
+  }
+
+  return root;
+}
+
+char* getJsonSD(String filename){
+  // open the file.
+  const char* name = filename.c_str();
+  File myFile = SD.open(name);
+
+  if (myFile) {
+    Serial.println(filename);
+
+    char* json;
+
+    // read from the file until there's nothing else in it:
+    while (myFile.available()) {
+    	//Serial.write(myFile.read());
+      json = json + myFile.read();
+    }
+    // close the file:
+    myFile.close();
+  } else {
+  	// if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
   }
 }
 

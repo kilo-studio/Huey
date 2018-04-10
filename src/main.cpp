@@ -117,7 +117,10 @@ void setup() {
   WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
 
   getLocation(WiFi.localIP());
+  delay(1000);
   getTimeZone(lat, lon);
+
+  lastRefresh = 0;
 
   // if (!getEepName()) {
     //fbRegister();
@@ -137,6 +140,12 @@ void loop() {
   checkForClients();
 
   long now = millis();
+  if (now % 1000 == 0) {
+    Serial.print("now: ");
+    Serial.println(now);
+    Serial.print("lastRefresh: ");
+    Serial.println(lastRefresh);
+  }
   if (now > lastRefresh) {
     Serial.println("---------");
     Serial.println("Refreshing firebase, forecast, and pixels...");
@@ -149,11 +158,11 @@ void loop() {
 
     if (connectToDarkSky(lat, lon)){
         getForecast();
-        // refreshPixels();
+        refreshPixels();
     }
     client.stop();
     client.flush();
-    lastRefresh = lastRefresh + refreshInterval;
+    lastRefresh = now + refreshInterval;
   }
 
   // if (now > fbLastRefresh) {
@@ -193,7 +202,7 @@ void loop() {
   //   fbLastQuickRefresh = now + fbQuickRefreshInterval;
   // }
 
-  // showTime();
+  showTime();
 
   // long refreshInterval = 10L * 60L * 1000L; // delay between updates, in milliseconds
   int countDownSeconds = (lastRefresh - now) / 1000L ; //60 * 1000 for minutes left, 1000 for seconds

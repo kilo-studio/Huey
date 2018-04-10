@@ -21,19 +21,23 @@ void storeDailyForecast();
 void applySun();
 boolean writeJsonToSD(String, JsonObject&);
 char* currentlyFileName = "current.txt";
+const int currentBufferSize = 2*20;
 char* hourlyFileName = "hour.txt";
+const int hourBufferSize = 100;
+char* dailyFileName = "day.txt";
+const int dayBufferSize = 3 * 20;
 
 int maxTemp = 100;
 int minTemp = 10;
-float maxCloudCover = 0.7;
-float sunIntensity = 0.2;
-float maxWind = 40;
+float maxCloudCover = 0;//0.7
+float sunIntensity = 0.2;//0.2
+float maxWind = 40;//40
 
 //current data
 Pixel pixels[168];
 int sunrises[] = {0,0,0,0,0,0,0};
 int sunsets[] = {0,0,0,0,0,0,0};
-float windSpeeds[] = {0,0,0,0,0,0,0};
+float cloudCover[] = {0,0,0,0,0,0,0};
 float currentPrecipIntensity = -1;
 float currentWindSpeed = -1;
 int currentIndex = 0;
@@ -75,7 +79,6 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
   client.println();
 
   Serial.println(F("request sent"));
-
   return true;
 }
 
@@ -92,18 +95,17 @@ void getForecast() {
 }
 
 void storeCurrentlyForecast() {
-  const int BUFFER_SIZE = 2*20;
-  StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
+  // StaticJsonBuffer<currentBufferSize> jsonBuffer;
+  // JsonObject& root = jsonBuffer.createObject();
 
   finder.findUntil((char *)"currently\":", (char *)"]");
   currentPrecipIntensity = floatHunt((char *)"precipIntensity");
   currentWindSpeed = floatHunt((char *)"windSpeed");
 
-  root["currentPrecipIntensity"] = currentPrecipIntensity;
-  root["currentWindSpeed"] = currentWindSpeed;
-  SD.remove(currentlyFileName);
-  writeJsonToSD(currentlyFileName, root);
+  // root["currentPrecipIntensity"] = currentPrecipIntensity;
+  // root["currentWindSpeed"] = currentWindSpeed;
+  // SD.remove(currentlyFileName);
+  // writeJsonToSD(currentlyFileName, root);
 
   checkWindDelay = map(currentWindSpeed, 0, maxWind, 10 * 1000, 1000);//convertWind Speed to refresh rate in ms
 
@@ -118,22 +120,22 @@ void storeCurrentlyForecast() {
 }
 
 void storeHourlyForecast() {
-  SD.remove(hourlyFileName);
-  // open the file.
-  const char* name = hourlyFileName;
-  File myFile = SD.open(name, FILE_WRITE);
-
-  // if the file opened okay, write to it:
-  if (myFile) {
-    Serial.println(String("Writing to ") + hourlyFileName);
-
-    myFile.print("{\"hourly\":[");
-
-    Serial.println("done.");
-  } else {
-    // if the file didn't open, print an error:
-    Serial.println(String("Error opening ") + hourlyFileName);
-  }
+  // SD.remove(hourlyFileName);
+  // // open the file.
+  // const char* name = hourlyFileName;
+  // File myFile = SD.open(name, FILE_WRITE);
+  //
+  // // if the file opened okay, write to it:
+  // if (myFile) {
+  //   Serial.println(String("Writing to ") + hourlyFileName);
+  //
+  //   myFile.print("{\"hourly\":[");
+  //
+  //   Serial.println("done.");
+  // } else {
+  //   // if the file didn't open, print an error:
+  //   Serial.println(String("Error opening ") + hourlyFileName);
+  // }
 
   //search through the results and create pixels for each hour in a week
   for (int i = 0; i < 168; i++) {
@@ -170,64 +172,80 @@ void storeHourlyForecast() {
 
     if (i == 0) {currentIndex = theIndex;}//remember where now is in pixel[]
 
-    const int BUFFER_SIZE = 100;
-    StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
-    JsonObject& data = root.createNestedObject(String(i));
-    data["time"] = t;
-    data["precipProbability"] = precipProb;
-    data["temperature"] = temp;
-    data["apparentTemperature"] = appTemp;
-    data["humidity"] = humidty;
+    // StaticJsonBuffer<hourBufferSize> jsonBuffer;
+    // JsonObject& root = jsonBuffer.createObject();
+    // JsonObject& data = root.createNestedObject(String(i));
+    // data["time"] = t;
+    // data["precipProbability"] = precipProb;
+    // data["temperature"] = temp;
+    // data["apparentTemperature"] = appTemp;
+    // data["humidity"] = humidty;
 
-    // if the file opened okay, write to it:
-    if (myFile) {
-      // if the file opened okay, write to it:
-      // Serialize JSON to file
-      if (root.printTo(myFile) == 0) {
-        Serial.println(String("Failed to write to ") + hourlyFileName);
-      }
-      if (i<167){
-          myFile.print(",");
-      }
-      Serial.println("done.");
-    } else {
-      // if the file didn't open, print an error:
-      Serial.println(String("Error opening ") + hourlyFileName);
-    }
+    // // if the file opened okay, write to it:
+    // if (myFile) {
+    //   // if the file opened okay, write to it:
+    //   // Serialize JSON to file
+    //   if (root.printTo(myFile) == 0) {
+    //     Serial.println(String("Failed to write to ") + hourlyFileName);
+    //   }
+    //   if (i<167){
+    //       myFile.print(",");
+    //   }
+    //   Serial.println("done.");
+    // } else {
+    //   // if the file didn't open, print an error:
+    //   Serial.println(String("Error opening ") + hourlyFileName);
+    // }
 
     Serial.print("weekDay: ");
     Serial.print(weekDay);
     Serial.print(", theHour: ");
     Serial.println(theHour);
 
-    // Serial.print("red: ");
-    // Serial.print(pixels[theIndex].red);
-    // Serial.print(", green: ");
-    // Serial.print(pixels[theIndex].green);
-    // Serial.print(", blue: ");
-    // Serial.print(pixels[theIndex].blue);
-    // Serial.print(", appRed: ");
-    // Serial.print(pixels[theIndex].appRed);
-    // Serial.print(", appBlue: ");
-    // Serial.println(pixels[theIndex].appBlue);
+    Serial.print("red: ");
+    Serial.print(pixels[theIndex].red);
+    Serial.print(", green: ");
+    Serial.print(pixels[theIndex].green);
+    Serial.print(", blue: ");
+    Serial.print(pixels[theIndex].blue);
+    Serial.print(", appRed: ");
+    Serial.print(pixels[theIndex].appRed);
+    Serial.print(", appBlue: ");
+    Serial.println(pixels[theIndex].appBlue);
   }
-  // if the file opened okay, write to it:
-  if (myFile) {
-    // if the file opened okay, write to it:
-    // Serialize JSON to file
-    myFile.print("]}");
-    myFile.close();
-    Serial.println("done.");
-  } else {
-    // if the file didn't open, print an error:
-    Serial.println(String("Error opening ") + hourlyFileName);
-  }
-  // SD.remove(hourlyFileName);
-  // writeJsonToSD(hourlyFileName, root);
+  // // if the file opened okay, write to it:
+  // if (myFile) {
+  //   // if the file opened okay, write to it:
+  //   // Serialize JSON to file
+  //   myFile.print("]}");
+  //   myFile.close();
+  //   Serial.println("done.");
+  // } else {
+  //   // if the file didn't open, print an error:
+  //   Serial.println(String("Error opening ") + hourlyFileName);
+  // }
+  // // SD.remove(hourlyFileName);
+  // // writeJsonToSD(hourlyFileName, root);
 }
 
 void storeDailyForecast() {
+  // SD.remove(dailyFileName);
+  // // open the file.
+  // const char* name = dailyFileName;
+  // File myFile = SD.open(name, FILE_WRITE);
+  //
+  // // if the file opened okay, write to it:
+  // if (myFile) {
+  //   Serial.println(String("Writing to ") + dailyFileName);
+  //
+  //   myFile.print("{\"daily\":[");
+  //
+  //   Serial.println("done.");
+  // } else {
+  //   // if the file didn't open, print an error:
+  //   Serial.println(String("Error opening ") + dailyFileName);
+  // }
+
   finder.findUntil((char *)"daily\":", (char *)"]");
 
   for (int i = 0; i < 7; i++) {
@@ -241,13 +259,49 @@ void storeDailyForecast() {
     int theSunset = hour(sunset);
     sunrises[i] = theSunrise;
     sunsets[i] = theSunset;
-    windSpeeds[i] = floatHunt((char *)"cloudCover");;
+    cloudCover[i] = floatHunt((char *)"cloudCover");;
+
+    // StaticJsonBuffer<dayBufferSize> jsonBuffer;
+    // JsonObject& root = jsonBuffer.createObject();
+    // JsonObject& data = root.createNestedObject(String(i));
+    // data["sunrise"] = theSunrise;
+    // data["sunset"] = theSunset;
+    // data["cloudCover"] = cloudCover;
+    // // writeJsonToSD(dailyFileName, root);
+    //
+    // // if the file opened okay, write to it:
+    // if (myFile) {
+    //   // if the file opened okay, write to it:
+    //   // Serialize JSON to file
+    //   if (root.printTo(myFile) == 0) {
+    //     Serial.println(String("Failed to write to ") + hourlyFileName);
+    //   }
+    //   if (i<6){
+    //       myFile.print(",");
+    //   }
+    //   Serial.println("done.");
+    // } else {
+    //   // if the file didn't open, print an error:
+    //   Serial.println(String("Error opening ") + hourlyFileName);
+    // }
 
     Serial.print("Sunrise: ");
     Serial.print(sunrises[i]);
     Serial.print(" Sunset: ");
     Serial.println(sunsets[i]);
   }
+
+  // // if the file opened okay, write to it:
+  // if (myFile) {
+  //   // if the file opened okay, write to it:
+  //   // Serialize JSON to file
+  //   myFile.print("]}");
+  //   myFile.close();
+  //   Serial.println("done.");
+  // } else {
+  //   // if the file didn't open, print an error:
+  //   Serial.println(String("Error opening ") + hourlyFileName);
+  // }
 }
 
 void applySun() {

@@ -35,7 +35,7 @@ boolean getTimeZone(String latitude, String longitude){
 
   Serial.println(F("request sent"));
 
-  // delay(250);
+  delay(250);
 
   httpFinder.findUntil((char *)"{", (char *)"\n\r");
   httpFinder.findUntil((char *)"gmtOffset\":", (char *)"\n\r");

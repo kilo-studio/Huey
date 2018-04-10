@@ -64,16 +64,16 @@ void showTime(){
   if (now >= checkShowTime){
 
     if (now >= checkSlowShowTime) {
-      if (gusting) {
-        windGust(500);
-        //add the wind to rain droplets
-        float windForce = currentWindSpeed/maxWind * 5;
-        // Serial.println("currentWindSpeed: " + String(currentWindSpeed));
-        // Serial.println("windForce: " + String(windForce));
-        for (int i = 0; i < maxDroplets; i++) {
-          drops[i].applyForce(windForce, 0.5);
-        }
-      }
+      // if (gusting) {
+      //   windGust(500);
+      //   //add the wind to rain droplets
+      //   float windForce = currentWindSpeed/maxWind * 5;
+      //   // Serial.println("currentWindSpeed: " + String(currentWindSpeed));
+      //   // Serial.println("windForce: " + String(windForce));
+      //   for (int i = 0; i < maxDroplets; i++) {
+      //     drops[i].applyForce(windForce, 0.5);
+      //   }
+      // }
       if (wipingDown) {wipeDown();}
       // if (wipeFading) {wipeFade(0.2);}
 
@@ -85,12 +85,12 @@ void showTime(){
       checkSuperSlowShowTime = now + superSlowShowDelay;
     }
 
-    if (now >= checkWindTime) {
-      Serial.println("wind!");
-
-      gusting = true;
-      checkWindTime = millis() + checkWindDelay;
-    }
+    // if (now >= checkWindTime) {
+    //   Serial.println("wind!");
+    //
+    //   gusting = true;
+    //   checkWindTime = millis() + checkWindDelay;
+    // }
 
     if (!wipingDown) {
       breathe();
@@ -118,6 +118,17 @@ void refreshPixels() {
     int index = reIndex(i);
     pixels[index].multiply(mult);
     //showNextCrawl(i);
+
+    Serial.print("red: ");
+    Serial.print(pixels[i].red);
+    Serial.print(", green: ");
+    Serial.print(pixels[i].green);
+    Serial.print(", blue: ");
+    Serial.print(pixels[i].blue);
+    Serial.print(", appRed: ");
+    Serial.print(pixels[i].appRed);
+    Serial.print(", appBlue: ");
+    Serial.println(pixels[i].appBlue);
   }
 
   wipingDown = true;
