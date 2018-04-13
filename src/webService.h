@@ -31,6 +31,7 @@ boolean setUpWebService(){
   Serial.print("Server listening at http://");
   Serial.print(mdnsName);
   Serial.println(".local/");
+  return true;
 }
 
 void checkForClients(){

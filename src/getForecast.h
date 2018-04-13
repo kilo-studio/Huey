@@ -30,7 +30,7 @@ const int dayBufferSize = 3 * 20;
 int maxTemp = 100;
 int minTemp = 10;
 float maxCloudCover = 0;//0.7
-float sunIntensity = 0.2;//0.2
+float sunIntensity = 0;//0.2
 float maxWind = 40;//40
 
 //current data
@@ -44,11 +44,11 @@ int currentIndex = 0;
 int checkWindDelay = 15 * 1000; // 60 x 1000 (1 minute)
 long checkWindTime = 30000;
 
-// Initialize the WiFi client library
-WiFiSSLClient client;
-TextFinder finder(client, 20);//finder and wait time in seconds
-
 boolean connectToDarkSky(char* latitude, char* longitude) {
+  // Initialize the WiFi client library
+  WiFiSSLClient client;
+  TextFinder finder(client, 20);//finder and wait time in seconds
+
   Serial.println("---------");
   Serial.println("Connecting to darksky...");
   //"https://api.darksky.net/forecast/e412ad3481ba8e4fdc137985443d60ca/"+longlat+"/?extend=hourly"
@@ -79,28 +79,20 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
   client.println();
 
   Serial.println(F("request sent"));
-  return true;
-}
 
-void getForecast() {
-  if (client.connected()) {
-    Serial.println("---------");
-    Serial.println(F("Getting the Forecast..."));
+  //************************************************************//
+  //************************************************************//
+  //************** STORE CURRENTLY FORECAST ********************//
+  //************************************************************//
+  //************************************************************//
 
-    storeCurrentlyForecast();
-    storeHourlyForecast();
-    storeDailyForecast();
-    applySun();
-  }
-}
-
-void storeCurrentlyForecast() {
   // StaticJsonBuffer<currentBufferSize> jsonBuffer;
   // JsonObject& root = jsonBuffer.createObject();
 
-  finder.findUntil((char *)"currently\":", (char *)"]");
-  currentPrecipIntensity = floatHunt((char *)"precipIntensity");
-  currentWindSpeed = floatHunt((char *)"windSpeed");
+  finder.findUntil((char *)"precipIntensity", (char *) "\n\r");
+  currentPrecipIntensity = finder.getFloat();
+  finder.findUntil((char *)"windSpeed", (char *) "\n\r");
+  currentWindSpeed = finder.getFloat();
 
   // root["currentPrecipIntensity"] = currentPrecipIntensity;
   // root["currentWindSpeed"] = currentWindSpeed;
@@ -117,9 +109,13 @@ void storeCurrentlyForecast() {
   Serial.print(currentPrecipIntensity);
   Serial.print(" windspeed: ");
   Serial.println(currentWindSpeed);
-}
 
-void storeHourlyForecast() {
+  //*********************************************************//
+  //*********************************************************//
+  //************** STORE HOURLY FORECAST ********************//
+  //*********************************************************//
+  //*********************************************************//
+
   // SD.remove(hourlyFileName);
   // // open the file.
   // const char* name = hourlyFileName;
@@ -139,16 +135,29 @@ void storeHourlyForecast() {
 
   //search through the results and create pixels for each hour in a week
   for (int i = 0; i < 168; i++) {
-    delay(5);
+    // delay(15);
     //showTime();
     //finder.findUntil("hourly\":", "]");
-    time_t t = timeHunt((char *)"time", timeZone);
+
+    // time_t t = timeHunt((char *)"time", timeZone);
+    finder.findUntil((char *)"time", (char *) "\n\r");
+    time_t t = finder.getValue() + timeZone;
     int weekDay = weekday(t) - 1;
     int theHour = hour(t);
-    float precipProb = floatHunt((char *)"precipProbability");;
-    int temp = intHunt((char *)"temperature");
-    int appTemp = intHunt((char *)"apparentTemperature");
-    float humidty = floatHunt((char *)"humidity");
+
+    // float precipProb = floatHunt((char *)"precipProbability");;
+    // int temp = intHunt((char *)"temperature");
+    // int appTemp = intHunt((char *)"apparentTemperature");
+    // float humidity = floatHunt((char *)"humidity");
+
+    finder.findUntil((char *)"precipProbability", (char *) "\n\r");
+    float precipProb = finder.getFloat();
+    finder.findUntil((char *)"temperature", (char *) "\n\r");
+    int temp = finder.getValue();
+    finder.findUntil((char *)"apparentTemperature", (char *) "\n\r");
+    int appTemp = finder.getValue();
+    finder.findUntil((char *)"humidity", (char *) "\n\r");
+    float humidity = finder.getFloat();
 
     int red = map(temp, minTemp, maxTemp, 0, 255);
     int blue = 255 - red;
@@ -160,13 +169,16 @@ void storeHourlyForecast() {
       green = map(green, 0, 255, 50, 255);
     }
 
-    int appGreen = green + 40 * humidty;
+    int appGreen = green + 40 * humidity;
     appGreen = constrain(appGreen, 0, 255);
 
     int theIndex = reIndex(weekDay * 24 + theHour);
     pixels[theIndex] = Pixel(red, green, blue, appRed, appBlue, appGreen);
 
-    float cloudCover = floatHunt((char *)"cloudCover");
+    // float cloudCover = floatHunt((char *)"cloudCover");
+
+    finder.findUntil((char *)"cloudCover", (char *) "\n\r");
+    float cloudCover = finder.getFloat();
     cloudCover = cloudCover * maxCloudCover;
     pixels[theIndex].multiply(1 - cloudCover);//more cloud coverage should be less bright
 
@@ -179,7 +191,7 @@ void storeHourlyForecast() {
     // data["precipProbability"] = precipProb;
     // data["temperature"] = temp;
     // data["apparentTemperature"] = appTemp;
-    // data["humidity"] = humidty;
+    // data["humidity"] = humidity;
 
     // // if the file opened okay, write to it:
     // if (myFile) {
@@ -202,16 +214,16 @@ void storeHourlyForecast() {
     Serial.print(", theHour: ");
     Serial.println(theHour);
 
-    Serial.print("red: ");
-    Serial.print(pixels[theIndex].red);
-    Serial.print(", green: ");
-    Serial.print(pixels[theIndex].green);
-    Serial.print(", blue: ");
-    Serial.print(pixels[theIndex].blue);
-    Serial.print(", appRed: ");
-    Serial.print(pixels[theIndex].appRed);
-    Serial.print(", appBlue: ");
-    Serial.println(pixels[theIndex].appBlue);
+    // Serial.print("red: ");
+    // Serial.print(pixels[theIndex].red);
+    // Serial.print(", green: ");
+    // Serial.print(pixels[theIndex].green);
+    // Serial.print(", blue: ");
+    // Serial.print(pixels[theIndex].blue);
+    // Serial.print(", appRed: ");
+    // Serial.print(pixels[theIndex].appRed);
+    // Serial.print(", appBlue: ");
+    // Serial.println(pixels[theIndex].appBlue);
   }
   // // if the file opened okay, write to it:
   // if (myFile) {
@@ -226,9 +238,12 @@ void storeHourlyForecast() {
   // }
   // // SD.remove(hourlyFileName);
   // // writeJsonToSD(hourlyFileName, root);
-}
 
-void storeDailyForecast() {
+  //*******************************************************//
+  //*******************************************************//
+  //**************STORE DAILY FORECAST*********************//
+  //*******************************************************//
+  //*******************************************************//
   // SD.remove(dailyFileName);
   // // open the file.
   // const char* name = dailyFileName;
@@ -253,13 +268,21 @@ void storeDailyForecast() {
     // int weekDay = weekday(t) - 1;
     // int theHour = hour(t);
 
-    time_t sunrise = timeHunt((char *)"sunriseTime", timeZone);
-    time_t sunset = timeHunt((char *)"sunsetTime", timeZone);
+    // time_t sunrise = timeHunt((char *)"sunriseTime", timeZone);
+    // time_t sunset = timeHunt((char *)"sunsetTime", timeZone);
+    finder.findUntil((char *)"sunriseTime", (char *) "\n\r");
+    time_t sunrise = finder.getValue() + timeZone;
+    finder.findUntil((char *)"sunsetTime", (char *) "\n\r");
+    time_t sunset = finder.getValue() + timeZone;
+
     int theSunrise = hour(sunrise);
     int theSunset = hour(sunset);
     sunrises[i] = theSunrise;
     sunsets[i] = theSunset;
-    cloudCover[i] = floatHunt((char *)"cloudCover");;
+
+    // cloudCover[i] = floatHunt((char *)"cloudCover");
+    finder.findUntil((char *)"cloudCover", (char *) "\n\r");
+    cloudCover[i] = finder.getFloat();
 
     // StaticJsonBuffer<dayBufferSize> jsonBuffer;
     // JsonObject& root = jsonBuffer.createObject();
@@ -302,6 +325,16 @@ void storeDailyForecast() {
   //   // if the file didn't open, print an error:
   //   Serial.println(String("Error opening ") + hourlyFileName);
   // }
+
+  //*******************************************************//
+  //*******************************************************//
+  //*******************************************************//
+  //*******************************************************//
+
+  client.stop();
+  client.flush();
+
+  return true;
 }
 
 void applySun() {
@@ -317,21 +350,21 @@ void applySun() {
   }
 }
 
-//finder functions
-time_t timeHunt(char* key, int timezone) {
-  finder.findUntil(key, (char *) "\n\r");
-  time_t t = finder.getValue();
-  return t + timeZone;//get the time and adjust it for the timeZone
-}
-
-int intHunt(char* key){
-  finder.findUntil(key, (char *) "\n\r");
-  return finder.getValue();
-}
-
-float floatHunt(char* key){
-  finder.findUntil(key, (char *) "\n\r");
-  return finder.getFloat();
-}
+// //finder functions
+// time_t timeHunt(char* key, int timezone) {
+//   finder.findUntil(key, (char *) "\n\r");
+//   time_t t = finder.getValue();
+//   return t + timeZone;//get the time and adjust it for the timeZone
+// }
+//
+// int intHunt(char* key){
+//   finder.findUntil(key, (char *) "\n\r");
+//   return finder.getValue();
+// }
+//
+// float floatHunt(char* key){
+//   finder.findUntil(key, (char *) "\n\r");
+//   return finder.getFloat();
+// }
 
 #endif

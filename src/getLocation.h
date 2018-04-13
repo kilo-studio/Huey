@@ -4,8 +4,8 @@
 boolean getLocation();
 
 //location
-char lat[] = "";
-char lon[] = "";
+char lat[] = "37.8267";
+char lon[] = "-122.4233";
 
 boolean getLocation(IPAddress IP){
   //location by ip freegeoip.net/json/173.53.85.225
@@ -23,6 +23,8 @@ boolean getLocation(IPAddress IP){
 
   if (!httpClient.connect(locationHost, httpPort)) {
     Serial.println("connection failed");
+    httpClient.flush();
+    httpClient.stop();
     return false;
   }
 
@@ -55,8 +57,8 @@ boolean getLocation(IPAddress IP){
   //    Serial.print(char(httpClient.read()));
   // }
 
-  httpClient.stop();
   httpClient.flush();
+  httpClient.stop();
 
   return true;
 }

@@ -113,12 +113,11 @@ void setup() {
   // you're connected now, so print out the status:
   printWiFiStatus();
 
+  getLocation(ip);
+  getTimeZone(lat, lon);
+
   // start the WiFi OTA library with internal (flash) based storage
   WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
-
-  getLocation(WiFi.localIP());
-  delay(1000);
-  getTimeZone(lat, lon);
 
   lastRefresh = 0;
 
@@ -157,11 +156,15 @@ void loop() {
     // firebaseClient.flush();
 
     if (connectToDarkSky(lat, lon)){
-        getForecast();
+        applySun();
         refreshPixels();
+        // simpleRefresh();
     }
-    client.stop();
-    client.flush();
+
+    // simpleRefresh();
+
+    // client.stop();
+    // client.flush();
     lastRefresh = now + refreshInterval;
   }
 

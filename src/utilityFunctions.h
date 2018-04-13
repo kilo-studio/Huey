@@ -7,6 +7,7 @@
 #include <SD.h>
 
 void printWiFiStatus();
+IPAddress ip;
 int reIndex(int Index);
 time_t timeHunt(char* key, int timezone);
 int intHunt(char* key);
@@ -93,7 +94,7 @@ void printWiFiStatus() {
   Serial.println(WiFi.SSID());
 
   // print your WiFi shield's IP address:
-  IPAddress ip = WiFi.localIP();
+  ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
 

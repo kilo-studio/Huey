@@ -6,10 +6,6 @@
 #include "getForecast.h"
 #include "utilityFunctions.h"
 
-#define PIN    5
-#define N_LEDS 168
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, PIN, NEO_GRB + NEO_KHZ800);
-
 void showTime();
 void breathe();
 void refreshPixels();
@@ -19,6 +15,10 @@ void rainDrop(int dropIndex);
 void wipeDown();
 void wipeFade(float brightness);
 void fadeBack();
+
+#define PIN    5
+#define N_LEDS 168
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(N_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 float breathSpeed = 2;//how fast should we breathe? increment per showDelay
 int breathAmount = 120;//how much should we breathe?
@@ -57,26 +57,25 @@ int wipeFadingColumn = 0;
 void showTime(){
   long now = millis();
 
-  if (currentPrecipIntensity > 0) {
-    rain();
-  }
+  // if (currentPrecipIntensity > 0) {
+  //   rain();
+  // }
 
   if (now >= checkShowTime){
 
     if (now >= checkSlowShowTime) {
-      // if (gusting) {
-      //   windGust(500);
-      //   //add the wind to rain droplets
-      //   float windForce = currentWindSpeed/maxWind * 5;
-      //   // Serial.println("currentWindSpeed: " + String(currentWindSpeed));
-      //   // Serial.println("windForce: " + String(windForce));
-      //   for (int i = 0; i < maxDroplets; i++) {
-      //     drops[i].applyForce(windForce, 0.5);
-      //   }
-      // }
+      if (gusting) {
+        windGust(500);
+        //add the wind to rain droplets
+        float windForce = currentWindSpeed/maxWind * 5;
+        // Serial.println("currentWindSpeed: " + String(currentWindSpeed));
+        // Serial.println("windForce: " + String(windForce));
+        for (int i = 0; i < maxDroplets; i++) {
+          drops[i].applyForce(windForce, 0.5);
+        }
+      }
       if (wipingDown) {wipeDown();}
       // if (wipeFading) {wipeFade(0.2);}
-
       checkSlowShowTime = now + slowShowDelay;
     }
 
@@ -85,12 +84,12 @@ void showTime(){
       checkSuperSlowShowTime = now + superSlowShowDelay;
     }
 
-    // if (now >= checkWindTime) {
-    //   Serial.println("wind!");
-    //
-    //   gusting = true;
-    //   checkWindTime = millis() + checkWindDelay;
-    // }
+    if (now >= checkWindTime) {
+      Serial.println("wind!");
+
+      gusting = true;
+      checkWindTime = millis() + checkWindDelay;
+    }
 
     if (!wipingDown) {
       breathe();
@@ -130,8 +129,36 @@ void refreshPixels() {
     Serial.print(", appBlue: ");
     Serial.println(pixels[i].appBlue);
   }
-
   wipingDown = true;
+  Serial.println("Done Refreshing Pixels");
+}
+
+void simpleRefresh(){
+  for (int i = 0; i < 168; i++){
+    //showTime();
+    // strip.setPixelColor(
+    //   i,
+    //   pixels[i].red,
+    //   pixels[i].green,
+    //   pixels[i].blue
+    // );
+
+    strip.setPixelColor(i , 0, 150, 150);
+
+    Serial.print("red: ");
+    Serial.print(pixels[i].red);
+    Serial.print(", green: ");
+    Serial.print(pixels[i].green);
+    Serial.print(", blue: ");
+    Serial.print(pixels[i].blue);
+    Serial.print(", appRed: ");
+    Serial.print(pixels[i].appRed);
+    Serial.print(", appBlue: ");
+    Serial.println(pixels[i].appBlue);
+
+    strip.show();
+    delay(5);
+  }
 }
 
 void wipeDown(){
