@@ -57,9 +57,9 @@ int wipeFadingColumn = 0;
 void showTime(){
   long now = millis();
 
-  // if (currentPrecipIntensity > 0) {
-  //   rain();
-  // }
+  if (currentPrecipIntensity > 0) {
+    rain();
+  }
 
   if (now >= checkShowTime){
 

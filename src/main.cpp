@@ -98,15 +98,12 @@ void setup() {
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     //status = WiFi.begin(ssid, pass);
 
-    // blink the led to show an unconnected status
-    digitalWrite(ledPin, HIGH);
-    delay(500);
-    digitalWrite(ledPin, LOW);
+    Serial.write('.');
     delay(500);
   }
 
   // connected, make the LED stay on
-  digitalWrite(ledPin, HIGH);
+  Serial.println("OK!");
 
   setUpWebService();
 
@@ -117,7 +114,7 @@ void setup() {
   getTimeZone(lat, lon);
 
   // start the WiFi OTA library with internal (flash) based storage
-  WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
+  // WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
 
   lastRefresh = 0;
 
@@ -131,7 +128,7 @@ void setup() {
 
 void loop() {
   // check for WiFi OTA updates
-  WiFiOTA.poll();
+  // WiFiOTA.poll();
 
   // Call the update() function on the MDNS responder every loop iteration to
   // make sure it can detect and respond to name requests.
@@ -139,12 +136,12 @@ void loop() {
   checkForClients();
 
   long now = millis();
-  if (now % 1000 == 0) {
-    Serial.print("now: ");
-    Serial.println(now);
-    Serial.print("lastRefresh: ");
-    Serial.println(lastRefresh);
-  }
+  // if (now % 1000 == 0) {
+  //   Serial.print("now: ");
+  //   Serial.println(now);
+  //   Serial.print("lastRefresh: ");
+  //   Serial.println(lastRefresh);
+  // }
   if (now > lastRefresh) {
     Serial.println("---------");
     Serial.println("Refreshing firebase, forecast, and pixels...");
@@ -159,6 +156,7 @@ void loop() {
         applySun();
         refreshPixels();
         // simpleRefresh();
+
     }
 
     // simpleRefresh();
