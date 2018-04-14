@@ -42,12 +42,16 @@ This code is in the public domain.
 #include "utilityFunctions.h"
 #include "webService.h"
 
+void showProgress(bool function);
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 char ota_ssid[] = OTA_SSID;
 char ota_pass[] = OTA_PASS;
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
+int loadingX = 0;
+int loadingY = 0;
 
 int status = WL_IDLE_STATUS;
 
@@ -60,14 +64,6 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  //SD Card Setup
-  pinMode(10, OUTPUT);
-  if (!SD.begin(10)) {
-    Serial.println("SD initialization failed!");
-  } else {
-    Serial.println("SD initialization done.");
-  }
-
   strip.begin();
   strip.setBrightness(255);
   blackOut();
@@ -75,19 +71,30 @@ void setup() {
   //Configure pins for Adafruit ATWINC1500 Feather
   WiFi.setPins(8,7,4,2);
 
+  //SD Card Setup
+  pinMode(10, OUTPUT);
+  if (!SD.begin(10)) {
+    Serial.println("SD initialization failed!");
+  } else {
+    Serial.println("SD initialization done.");
+    showProgress(false);
+  }
+
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
     // don't continue:
     while (true);
   }
-
+  loadingX = 0;
+  showProgress(true);
   // Start in provisioning mode:
   //  1) This will try to connect to a previously associated access point.
   //  2) If this fails, an access point named "wifi101-XXXX" will be created, where XXXX
   //     is the last 4 digits of the boards MAC address. Once you are connected to the access point,
   //     you can configure an SSID and password by visiting http://wifi101/
   WiFi.beginProvision();
+  showProgress(false);
 
   pinMode(ledPin, OUTPUT);
 
@@ -97,7 +104,7 @@ void setup() {
     // Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     //status = WiFi.begin(ssid, pass);
-
+    showProgress(false);
     Serial.write('.');
     delay(500);
   }
@@ -105,13 +112,17 @@ void setup() {
   // connected, make the LED stay on
   Serial.println("OK!");
 
-  setUpWebService();
+  if(setUpWebService()){
+    showProgress(true);
+  }
 
   // you're connected now, so print out the status:
   printWiFiStatus();
 
   getLocation(ip);
+  showProgress(true);
   getTimeZone(lat, lon);
+  showProgress(true);
 
   // start the WiFi OTA library with internal (flash) based storage
   // WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
@@ -124,6 +135,19 @@ void setup() {
   //fbGetHuey();
 
   //firebaseClient.flush();
+}
+
+void showProgress(bool function){
+  if (function) {
+    loadingX = 0;
+    loadingY += 1;
+  }
+
+  int loadingIndex = reIndex(loadingX*24 + loadingY);
+  strip.setPixelColor(loadingIndex, 100, 100, 100);
+  strip.show();
+
+  loadingX += 1;
 }
 
 void loop() {
@@ -156,7 +180,6 @@ void loop() {
         applySun();
         refreshPixels();
         // simpleRefresh();
-
     }
 
     // simpleRefresh();
