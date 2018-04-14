@@ -7,6 +7,7 @@
 #include <WiFi101.h>
 #include <SD.h>
 
+#include "arduino_secrets.h"
 #include "utilityFunctions.h"
 #include "Pixel.h"
 #include "Drop.h"
@@ -54,10 +55,10 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
   Serial.println("Connecting to darksky...");
   //"https://api.darksky.net/forecast/e412ad3481ba8e4fdc137985443d60ca/"+longlat+"/?extend=hourly"
   const char host[] = "api.darksky.net";
-  const char apiKey[] = "/forecast/e412ad3481ba8e4fdc137985443d60ca/";
+  String apiKey = DARK_SKY_KEY;
   const char extendHourly[] = "?extend=hourly";
   const char exclusions[] = "&exclude[latitude,longitude,offset,minutely,alerts,flags]/";
-  String url = String(apiKey) + latitude + "," + longitude + extendHourly + exclusions;
+  String url = "/forecast/" + apiKey + "/" + latitude + "," + longitude + extendHourly + exclusions;
   //const static char url[] = "/forecast/e412ad3481ba8e4fdc137985443d60ca/37.593626,-77.521149/?extend=hourly&exclude=[latitude,longitude,minutely,alerts,flags]";
 
   Serial.print(F("connecting to "));

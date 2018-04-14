@@ -267,7 +267,7 @@ void windGust(int fadeDelay){
       timeToFade = now + fadeDelay;
       //Serial.println(String("timeToFade: ") + timeToFade);
   } else if (timeToFade != 0 && now > timeToFade) {
-    Serial.println(String("fading back ") + now + ", time is past " + timeToFade);
+    // Serial.println(String("fading back ") + now + ", time is past " + timeToFade);
     gusting = false;
     gustColumn = 0;
     timeToFade = 0;
