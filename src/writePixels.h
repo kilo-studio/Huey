@@ -24,7 +24,7 @@ float breathSpeed = 2;//how fast should we breathe? increment per showDelay
 int breathAmount = 120;//how much should we breathe?
 int breathDirection = -1;
 float breathProgress = 0;
-int const minDroplets = 1;
+int const minDroplets = 2;
 int const maxDroplets = 20;
 Drop drops[maxDroplets];
 float sunsetBrightness = 0.2;//brightness after the sun goes down
