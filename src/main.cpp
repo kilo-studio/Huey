@@ -137,19 +137,6 @@ void setup() {
   //firebaseClient.flush();
 }
 
-void showProgress(bool function){
-  if (function) {
-    loadingX = 0;
-    loadingY += 1;
-  }
-
-  int loadingIndex = reIndex(loadingX*24 + loadingY);
-  strip.setPixelColor(loadingIndex, 100, 100, 100);
-  strip.show();
-
-  loadingX += 1;
-}
-
 void loop() {
   // check for WiFi OTA updates
   // WiFiOTA.poll();
@@ -168,7 +155,7 @@ void loop() {
   // }
   if (now > lastRefresh) {
     Serial.println("---------");
-    Serial.println("Refreshing firebase, forecast, and pixels...");
+    Serial.println("Refreshing forecast, and pixels...");
 
     // if (!fbGetHuey()){
     //   Serial.println("Could not refresh from firebase");
@@ -240,6 +227,19 @@ void loop() {
   }
 
   delay(3);
+}
+
+void showProgress(bool function){
+  if (function) {
+    loadingX = 0;
+    loadingY += 1;
+  }
+
+  int loadingIndex = reIndex(loadingX*24 + loadingY);
+  strip.setPixelColor(loadingIndex, 100, 100, 100);
+  strip.show();
+
+  loadingX += 1;
 }
 
 #endif
