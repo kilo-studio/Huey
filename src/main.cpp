@@ -43,6 +43,7 @@ This code is in the public domain.
 #include "webService.h"
 
 void showProgress(bool function);
+bool showingProgress = true;
 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
@@ -128,13 +129,6 @@ void setup() {
   // WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
 
   lastRefresh = 0;
-
-  // if (!getEepName()) {
-    //fbRegister();
-  // }
-  //fbGetHuey();
-
-  //firebaseClient.flush();
 }
 
 void loop() {
@@ -157,12 +151,6 @@ void loop() {
     Serial.println("---------");
     Serial.println("Refreshing forecast, and pixels...");
 
-    // if (!fbGetHuey()){
-    //   Serial.println("Could not refresh from firebase");
-    // }
-
-    // firebaseClient.flush();
-
     if (connectToDarkSky(lat, lon)){
         applySun();
         refreshPixels();
@@ -175,43 +163,6 @@ void loop() {
     // client.flush();
     lastRefresh = now + refreshInterval;
   }
-
-  // if (now > fbLastRefresh) {
-  //   Serial.println("---------");
-  //   Serial.println("Checking Firebase");
-  //   fbGetHuey();
-  //
-  //   // if (_UPDATING_ == 1){
-  //   //   fbGetHuey();
-  //   //   fbStopUpdate();
-  //   //   lastRefresh = 0;
-  //   // }
-  //
-  //   // firebaseClient.stop();
-  //   // firebaseClient.flush();
-  //
-  //   Serial.println("---------");
-  //   fbLastRefresh = now + fbRefreshInterval;
-  // }
-
-  // while (firebaseClient.available()) {
-  //   char c = firebaseClient.read();
-  //   Serial.write(c);
-  // }
-
-  // if (_UPDATING_ && now > fbLastQuickRefresh) {
-  //   Serial.println("---------");
-  //   Serial.println("Quickly Checking Firebase");
-  //   // _UPDATING_ = fbUpdate();
-  //   fbGetHuey();
-  //   if (quickUpdates > 2){
-  //     _UPDATING_ = false;
-  //     fbStopUpdate();
-  //   }
-  //   Serial.println("---------");
-  //   quickUpdates++;
-  //   fbLastQuickRefresh = now + fbQuickRefreshInterval;
-  // }
 
   showTime();
 
@@ -230,6 +181,8 @@ void loop() {
 }
 
 void showProgress(bool function){
+  if(!showingProgress){return;}
+
   if (function) {
     loadingX = 0;
     loadingY += 1;
