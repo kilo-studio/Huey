@@ -74,6 +74,8 @@ void checkForClients(){
           // The HTTP response ends with another blank line:
           client.println();
           client.println("</html>");
+
+
           break;
         }
         if (c == '\n') {
