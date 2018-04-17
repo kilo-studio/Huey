@@ -5,6 +5,7 @@
 
 void checkForClients();
 boolean setUpWebService();
+void SetSettings(void);
 void SetLEDs(void);
 char StrContains(char *str, char *sfind);
 void StrClear(char *str, char length);
@@ -17,7 +18,7 @@ char mdnsName[] = "huey"; // the MDNS name that the board will respond to
 // the MDNS name "wifi101.local".
 
 // size of buffer used to capture HTTP requests
-#define REQ_BUF_SZ   60
+#define REQ_BUF_SZ   100
 File webFile;               // the web page file on the SD card
 char HTTP_req[REQ_BUF_SZ] = {0}; // buffered HTTP request stored as null terminated string
 char req_index = 0;              // index into HTTP_req buffer
@@ -73,7 +74,8 @@ void checkForClients(){
             client.println("Content-Type: text/xml");
             client.println("Connection: keep-alive");
             client.println();
-            SetLEDs();
+            // SetLEDs();
+            SetSettings();
             // send XML file containing input states
             XML_response(client);
           }
@@ -120,34 +122,75 @@ void checkForClients(){
 }
 
 void SetSettings(void){
+  Serial.println("Setting settings...");
+  // LED 1 (pin 6)
+  if (StrContains(HTTP_req, "LED1=1")) {
+    LED_state[0] = 1;  // save LED state
+    // digitalWrite(6, HIGH);
+    strip.setPixelColor(0, 100, 100, 100);
+    strip.show();
+  }
+  else if (StrContains(HTTP_req, "LED1=0")) {
+    LED_state[0] = 0;  // save LED state
+    // digitalWrite(6, LOW);
+    strip.setPixelColor(0, 0, 0, 0);
+    strip.show();
+  }
+  // LED 2 (pin 7)
+  if (StrContains(HTTP_req, "LED2=1")) {
+    LED_state[1] = 1;  // save LED state
+    // digitalWrite(7, HIGH);
+    strip.setPixelColor(1, 100, 100, 100);
+    strip.show();
+  }
+  else if (StrContains(HTTP_req, "LED2=0")) {
+    LED_state[1] = 0;  // save LED state
+    // digitalWrite(7, LOW);
+    strip.setPixelColor(1, 0, 0, 0);
+    strip.show();
+  }
+
+  // Add the final 0 to end the C string
+  HTTP_req[REQ_BUF_SZ] = 0;
+
   // Read each command pair
   char* command = strtok(HTTP_req, "&");
-  while (command != NULL)
+  while (command != 0)
   {
     // Split the command in two values
     char* separator = strchr(command, '=');
-    // Actually split the string in 2: replace ':' with 0
-    *separator = 0;
-    // int servoId = atoi(command);
-    ++separator;
 
-    // Do something with servoId and position
-    if(StrContains(command, "latitude")){
-      // lat = separator;
-      strcpy(lat, separator);
-    } else if (StrContains(command, "longitude")) {
-      // lon = separator;
-      strcpy(lon, separator);
-    } else if (StrContains(command, "dayBrightness")){
-      int value = atoi(separator);
-      defaultBrightness = value / 100.0;
-    } else if (StrContains(command, "nightBrightness")) {
-      int value = atoi(separator);
-      sunsetBrightness = value / 100.0;
+    if (separator != 0)
+    {
+      // Actually split the string in 2: replace ':' with 0
+      *separator = 0;
+      // int servoId = atoi(command);
+      ++separator;
+
+      // Do something with servoId and position
+      if (StrContains(command, "latitude")){
+        // lat = separator;
+        strcpy(lat, separator);
+        Serial.println(String("lat: ") + lat);
+      }
+      if (StrContains(command, "longitude")) {
+        // lon = separator;
+        strcpy(lon, separator);
+        Serial.println(String("lon: ") + lon);
+      }
+      if (StrContains(command, "dayBrightness")){
+        int value = atoi(separator);
+        defaultBrightness = value / 100.0;
+        Serial.println(String("defaultBrightness: ") + defaultBrightness);
+      }
+      if (StrContains(command, "nightBrightness")) {
+        int value = atoi(separator);
+        sunsetBrightness = value / 100.0;
+        Serial.println(String("sunsetBrightness: ") + sunsetBrightness);
+      }
     }
-
     // Find the next command in input string
-    command = strtok(NULL, "&");
+    command = strtok(0, "&");
   }
 }
 
