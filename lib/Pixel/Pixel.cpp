@@ -48,14 +48,24 @@ void Pixel::brighten(float amount){
   constraint();
 }
 
-void Pixel::multiply(float percent){
-  red *= percent;
-  blue *= percent;
-  green *= percent;
-  appRed *= percent;
-  appGreen *= percent;
-  appBlue *= percent;
-  constraint();
+void Pixel::multiply(float value){
+  red *= value;
+  blue *= value;
+  green *= value;
+  appRed *= value;
+  appGreen *= value;
+  appBlue *= value;
+  // constraint();
+}
+
+void Pixel::divide(float value){
+  red = red/value;
+  blue = blue/value;
+  green = green/value;
+  appRed = appRed/value;
+  appGreen = appGreen/value;
+  appBlue = appBlue/value;
+  // constraint();
 }
 
 void Pixel::constraint(){

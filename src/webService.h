@@ -1,6 +1,11 @@
 #ifndef _webService_h_
 #define _webService_h_
 
+#include <SPI.h>
+#include <WiFi101.h>
+#include <WiFi101OTA.h>
+#include <WiFiMDNSResponder.h>
+
 #include "main.cpp"
 
 void checkForClients();
@@ -113,7 +118,7 @@ void checkForClients(){
         }
       } // end if (client.available())
     } // end while (client.connected())
-    delay(1);      // give the web browser time to receive the data
+    delay(2);      // give the web browser time to receive the data
     client.stop(); // close the connection
   } // end if (client)
 
@@ -122,7 +127,6 @@ void checkForClients(){
 }
 
 void SetSettings(void){
-  Serial.println("Setting settings...");
   // LED 1 (pin 6)
   if (StrContains(HTTP_req, "LED1=1")) {
     LED_state[0] = 1;  // save LED state
@@ -153,6 +157,8 @@ void SetSettings(void){
   // Add the final 0 to end the C string
   HTTP_req[REQ_BUF_SZ] = 0;
 
+  Serial.print(HTTP_req);
+
   // Read each command pair
   char* command = strtok(HTTP_req, "&");
   while (command != 0)
@@ -180,12 +186,16 @@ void SetSettings(void){
       }
       if (StrContains(command, "dayBrightness")){
         int value = atoi(separator);
+        prevDefaultBrightness = defaultBrightness;
         defaultBrightness = value / 100.0;
+        settingBrightness = true;
         Serial.println(String("defaultBrightness: ") + defaultBrightness);
       }
       if (StrContains(command, "nightBrightness")) {
         int value = atoi(separator);
+        prevSunsetBrightness = sunsetBrightness;
         sunsetBrightness = value / 100.0;
+        settingBrightness = true;
         Serial.println(String("sunsetBrightness: ") + sunsetBrightness);
       }
     }
