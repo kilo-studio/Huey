@@ -9,6 +9,7 @@
 void showTime();
 void breathe();
 void refreshPixels();
+void applyBrightness();
 void windGust(int fadeDelay);
 void rain();
 void rainDrop(int dropIndex);
@@ -28,7 +29,9 @@ int const minDroplets = 2;
 int const maxDroplets = 20;
 Drop drops[maxDroplets];
 float sunsetBrightness = 0.2;//brightness after the sun goes down
+float prevSunsetBrightness = 1;
 float defaultBrightness = 0.5;//brightness before the sun goes down
+float prevDefaultBrightness = 1;
 float refreshBrightness = 0.9;
 
 long refreshInterval = 10L * 60L * 1000L; // delay between updates, in milliseconds
@@ -54,12 +57,17 @@ boolean wipingDown = false;
 int wipeDownColumn = 0;
 boolean wipeFading = false;
 int wipeFadingColumn = 0;
+boolean settingBrightness = false;
 
 void showTime(){
   long now = millis();
 
   if (currentPrecipIntensity > 0) {
     rain();
+  }
+
+  if (settingBrightness) {
+    applyBrightness();
   }
 
   if (now >= checkShowTime){
@@ -104,34 +112,46 @@ void showTime(){
 void refreshPixels() {
   Serial.println("Refreshing Pixels");
 
+  // for (int i = 0; i < 168; i++){
+  //   Serial.print("red: ");
+  //   Serial.print(pixels[i].red);
+  //   Serial.print(", green: ");
+  //   Serial.print(pixels[i].green);
+  //   Serial.print(", blue: ");
+  //   Serial.print(pixels[i].blue);
+  //   Serial.print(", appRed: ");
+  //   Serial.print(pixels[i].appRed);
+  //   Serial.print(", appBlue: ");
+  //   Serial.println(pixels[i].appBlue);
+  // }
+  settingBrightness = true;
+  wipingDown = true;
+  Serial.println("Done Refreshing Pixels");
+}
+
+void applyBrightness(){
   int day = floor(currentIndex / 24);
   int hour = reIndex(currentIndex) % 24;
   float mult = defaultBrightness;
+  float divide = prevDefaultBrightness;
 
   if (hour <= sunrises[day] || hour >= sunsets[day]) {
     Serial.println("dimming");
     mult = sunsetBrightness;
+    divide = prevSunsetBrightness;
   }
 
   for (int i = 0; i < 168; i++){
-    //showTime();
     int index = reIndex(i);
+    pixels[index].divide(divide);
     pixels[index].multiply(mult);
-    //showNextCrawl(i);
 
-    Serial.print("red: ");
-    Serial.print(pixels[i].red);
-    Serial.print(", green: ");
-    Serial.print(pixels[i].green);
-    Serial.print(", blue: ");
-    Serial.print(pixels[i].blue);
-    Serial.print(", appRed: ");
-    Serial.print(pixels[i].appRed);
-    Serial.print(", appBlue: ");
-    Serial.println(pixels[i].appBlue);
+    if(!wipingDown){
+        strip.setPixelColor(index, pixels[index].red, pixels[index].green, pixels[index].blue);
+    }
   }
-  wipingDown = true;
-  Serial.println("Done Refreshing Pixels");
+
+  settingBrightness = false;
 }
 
 void simpleRefresh(){

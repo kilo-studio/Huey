@@ -21,7 +21,8 @@ class Pixel
     Pixel(int Red, int Green, int Blue);
     Pixel(int Red, int Green, int Blue, int AppRed, int AppBlue, int appGreen);
     void brighten(float amount);
-    void multiply(float percent);
+    void multiply(float value);
+    void divide(float value);
     void constraint();
     float percentRed();
     float percentGreen();

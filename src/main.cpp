@@ -34,6 +34,7 @@ This code is in the public domain.
 #include "Pixel.h"
 #include "Drop.h"
 #include "arduino_secrets.h"
+// #include "getIPLocation.h"
 #include "getLocation.h"
 #include "getTimeZone.h"
 #include "getForecast.h"
@@ -124,6 +125,8 @@ void setup() {
   showProgress(true);
   getTimeZone(lat, lon);
   showProgress(true);
+  // getIPLocation(ip);
+  // showProgress(true);
 
   // start the WiFi OTA library with internal (flash) based storage
   // WiFiOTA.begin(ota_ssid, ota_pass, SDStorage);
