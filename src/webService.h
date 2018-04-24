@@ -28,6 +28,7 @@ File webFile;               // the web page file on the SD card
 char HTTP_req[REQ_BUF_SZ] = {0}; // buffered HTTP request stored as null terminated string
 char req_index = 0;              // index into HTTP_req buffer
 boolean LED_state[2] = {0}; // stores the states of the LEDs
+int runs = 0;
 
 WiFiServer server(80);
 
@@ -83,8 +84,14 @@ void checkForClients(){
             SetSettings();
             // send XML file containing input states
             XML_response(client);
-          }
-          else {  // web page request
+            if (runs == 0) {
+              Serial.print("runs: ");
+              Serial.println(runs);
+              runs = runs + 1;
+              break;
+            }
+          } else
+          {  // web page request
             // send rest of HTTP header
             client.println("Content-Type: text/html");
             client.println("Connection: keep-alive");
@@ -97,6 +104,8 @@ void checkForClients(){
               }
               webFile.close();
             }
+
+            runs = 0;
           }
           // display received HTTP request on serial port
           Serial.print(HTTP_req);

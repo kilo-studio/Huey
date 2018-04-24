@@ -136,7 +136,7 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
 
   //search through the results and create pixels for each hour in a week
   for (int i = 0; i < 168; i++) {
-    // delay(15);
+    yield();
     //showTime();
     //finder.findUntil("hourly\":", "]");
 
