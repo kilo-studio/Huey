@@ -125,6 +125,7 @@ void setup() {
   showProgress(true);
   getTimeZone(lat, lon);
   showProgress(true);
+
   // getIPLocation(ip);
   // showProgress(true);
 
@@ -159,6 +160,8 @@ void loop() {
         refreshPixels();
         // simpleRefresh();
     }
+
+    // refreshPixels();
 
     // simpleRefresh();
 

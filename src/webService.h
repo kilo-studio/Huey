@@ -60,6 +60,7 @@ void checkForClients(){
     while (client.connected()) {
       if (client.available()) {   // client data available to read
         char c = client.read(); // read 1 byte (character) from client
+        Serial.print(c);
         // limit the size of the stored received HTTP request
         // buffer first part of HTTP request in HTTP_req array (string)
         // leave last element in array as 0 to null terminate string (REQ_BUF_SZ - 1)
@@ -127,7 +128,7 @@ void checkForClients(){
         }
       } // end if (client.available())
     } // end while (client.connected())
-    delay(2);      // give the web browser time to receive the data
+    delay(1);      // give the web browser time to receive the data
     client.stop(); // close the connection
   } // end if (client)
 

@@ -16,6 +16,7 @@ void rainDrop(int dropIndex);
 void wipeDown();
 void wipeFade(float brightness);
 void fadeBack();
+void colorFromHour(String hourlyFile);
 
 #define PIN    5
 #define N_LEDS 168
@@ -67,6 +68,7 @@ void showTime(){
   }
 
   if (settingBrightness) {
+    colorFromSD(currentlyFileName, hourlyFileName, dailyFileName);
     applyBrightness();
   }
 
@@ -112,6 +114,8 @@ void showTime(){
 void refreshPixels() {
   Serial.println("Refreshing Pixels");
 
+  colorFromSD(currentlyFileName, hourlyFileName, dailyFileName);
+
   // for (int i = 0; i < 168; i++){
   //   Serial.print("red: ");
   //   Serial.print(pixels[i].red);
@@ -133,17 +137,17 @@ void applyBrightness(){
   int day = floor(currentIndex / 24);
   int hour = reIndex(currentIndex) % 24;
   float mult = defaultBrightness;
-  float divide = prevDefaultBrightness;
+  // float divide = prevDefaultBrightness;
 
   if (hour <= sunrises[day] || hour >= sunsets[day]) {
     Serial.println("dimming");
     mult = sunsetBrightness;
-    divide = prevSunsetBrightness;
+    // divide = prevSunsetBrightness;
   }
 
   for (int i = 0; i < 168; i++){
     int index = reIndex(i);
-    pixels[index].divide(divide);
+    // pixels[index].divide(divide);
     pixels[index].multiply(mult);
 
     if(!wipingDown){
@@ -447,6 +451,121 @@ void blackOut(){
     strip.show();
     delay(10);
   }
+}
+
+boolean colorFromSD(String currentlyFile, String hourlyFile, String dailyFile){
+  JsonObject& currentJson = getJsonObject(currentlyFile);
+  currentPrecipIntensity = currentJson["currentPrecipIntensity"];
+  currentWindSpeed = currentJson["currentWindSpeed"];
+
+  Serial.println(String("currentPrecipIntensity: ") + currentPrecipIntensity);
+  Serial.println(String("currentWindSpeed: ") + currentWindSpeed);
+
+  // JsonObject& hourJson = getJsonObject(hourlyFile);
+  // JsonArray& hourly = hourJson["hourly"];
+  // for (int i = 0; i < 168; i++) {
+  //   String temperature = hourly[i]["temperature"];
+  //   Serial.println(temperature);
+  // }
+
+  colorFromHour(hourlyFile);
+
+  return true;
+}
+
+void colorFromHour(String hourlyFile){
+  // open the hourly file.
+  const char* name = hourlyFile.c_str();
+  File myFile = SD.open(name);
+  // TextFinder finder(myFile, 20);
+
+
+  if (myFile) {
+    Serial.println(hourlyFile);
+
+    // read from the file until there's nothing else in it:
+    while (myFile.available())
+    {
+      // json = json + (char)myFile.read();
+      //search through the results and create pixels for each hour in a week
+      for (int i = 0; i < 168; i++)
+      {
+        yield();
+        delay(2);
+        //showTime();
+
+        myFile.findUntil((char *)"time\":", (char *) "\n\r");
+        time_t t = atoi(myFile.readStringUntil(',').c_str());
+        t = t + timeZone;
+        int weekDay = weekday(t) - 1;
+        int theHour = hour(t);
+
+        myFile.findUntil((char *)"precipProbability\":", (char *) "\n\r");
+        float precipProb = strtod(myFile.readStringUntil(',').c_str(), NULL);
+        myFile.findUntil((char *)"temperature\":", (char *) "\n\r");
+        int temp = atoi(myFile.readStringUntil(',').c_str());
+        myFile.findUntil((char *)"apparentTemperature\":", (char *) "\n\r");
+        int appTemp = atoi(myFile.readStringUntil(',').c_str());
+        myFile.findUntil((char *)"cloudCover\":", (char *) "\n\r");
+        float cloudCover = strtod(myFile.readStringUntil(',').c_str(), NULL);
+        cloudCover = cloudCover * maxCloudCover;
+        myFile.findUntil((char *)"humidity\":", (char *) "\n\r");
+        float humidity = strtod(myFile.readStringUntil('}').c_str(), NULL);
+
+        int red = map(temp, minTemp, maxTemp, 0, 255);
+        int blue = 255 - red;
+        int appRed = map(appTemp, minTemp, maxTemp, 0, 255);
+        int appBlue = 255 - appRed;
+
+        int green = float(255) * precipProb;
+        if (green > 0) {
+          green = map(green, 0, 255, 50, 255);
+        }
+
+        int appGreen = green + 40 * humidity;
+        appGreen = constrain(appGreen, 0, 255);
+
+        int theIndex = reIndex(weekDay * 24 + theHour);
+        pixels[theIndex] = Pixel(red, green, blue, appRed, appBlue, appGreen);
+        pixels[theIndex].multiply(1 - cloudCover);//more cloud coverage should be less bright
+
+        if (i == 0) {currentIndex = theIndex;}//remember where now is in pixel[]
+
+        Serial.print("i: ");
+        Serial.print(i);
+        Serial.print(" weekDay: ");
+        Serial.print(weekDay);
+        Serial.print(", theHour: ");
+        Serial.println(theHour);
+        Serial.print("clouds: ");
+        Serial.println(cloudCover);
+
+        // Serial.print("red: ");
+        // Serial.print(pixels[theIndex].red);
+        // Serial.print(", green: ");
+        // Serial.print(pixels[theIndex].green);
+        // Serial.print(", blue: ");
+        // Serial.print(pixels[theIndex].blue);
+        // Serial.print(", appRed: ");
+        // Serial.print(pixels[theIndex].appRed);
+        // Serial.print(", appBlue: ");
+        // Serial.println(pixels[theIndex].appBlue);
+
+        if (i == 167) {
+          // close the file:
+          myFile.close();
+          return;
+        }
+      }
+    }
+    // close the file:
+    myFile.close();
+  } else {
+  	// if the file didn't open, print an error:
+    Serial.println("error opening hour.txt");
+    return;
+  }
+
 }
 
 #endif

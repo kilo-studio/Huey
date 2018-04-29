@@ -24,7 +24,7 @@ boolean writeJsonToSD(String, JsonObject&);
 char* currentlyFileName = "current.txt";
 const int currentBufferSize = 2*20;
 char* hourlyFileName = "hour.txt";
-const int hourBufferSize = 100;
+const int hourBufferSize = 215;
 char* dailyFileName = "day.txt";
 const int dayBufferSize = 3 * 20;
 char* forecastFileName = "cast.txt";
@@ -138,7 +138,7 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
   for (int i = 0; i < 168; i++) {
     yield();
     //showTime();
-    //finder.findUntil("hourly\":", "]");
+    // finder.findUntil("hourly\":", "]");
 
     // time_t t = timeHunt((char *)"time", timeZone);
     finder.findUntil((char *)"time", (char *) "\n\r");
@@ -159,31 +159,28 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     int appTemp = finder.getValue();
     finder.findUntil((char *)"humidity", (char *) "\n\r");
     float humidity = finder.getFloat();
-
-    int red = map(temp, minTemp, maxTemp, 0, 255);
-    int blue = 255 - red;
-    int appRed = map(appTemp, minTemp, maxTemp, 0, 255);
-    int appBlue = 255 - appRed;
-
-    int green = float(255) * precipProb;
-    if (green > 0) {
-      green = map(green, 0, 255, 50, 255);
-    }
-
-    int appGreen = green + 40 * humidity;
-    appGreen = constrain(appGreen, 0, 255);
-
-    int theIndex = reIndex(weekDay * 24 + theHour);
-    pixels[theIndex] = Pixel(red, green, blue, appRed, appBlue, appGreen);
-
-    // float cloudCover = floatHunt((char *)"cloudCover");
-
     finder.findUntil((char *)"cloudCover", (char *) "\n\r");
     float cloudCover = finder.getFloat();
     cloudCover = cloudCover * maxCloudCover;
-    pixels[theIndex].multiply(1 - cloudCover);//more cloud coverage should be less bright
 
-    if (i == 0) {currentIndex = theIndex;}//remember where now is in pixel[]
+    // int red = map(temp, minTemp, maxTemp, 0, 255);
+    // int blue = 255 - red;
+    // int appRed = map(appTemp, minTemp, maxTemp, 0, 255);
+    // int appBlue = 255 - appRed;
+    //
+    // int green = float(255) * precipProb;
+    // if (green > 0) {
+    //   green = map(green, 0, 255, 50, 255);
+    // }
+
+    // int appGreen = green + 40 * humidity;
+    // appGreen = constrain(appGreen, 0, 255);
+
+    // int theIndex = reIndex(weekDay * 24 + theHour);
+    // pixels[theIndex] = Pixel(red, green, blue, appRed, appBlue, appGreen);
+    // pixels[theIndex].multiply(1 - cloudCover);//more cloud coverage should be less bright
+
+    // if (i == 0) {currentIndex = theIndex;}//remember where now is in pixel[]
 
     StaticJsonBuffer<hourBufferSize> jsonBuffer;
     JsonObject& hourRoot = jsonBuffer.createObject();
@@ -192,8 +189,11 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     data["precipProbability"] = precipProb;
     data["temperature"] = temp;
     data["apparentTemperature"] = appTemp;
+    data["cloudCover"] = cloudCover;
     data["humidity"] = humidity;
 
+    delay(2);
+    
     // if the file opened okay, write to it:
     if (hourlyFile) {
       // if the file opened okay, write to it:
