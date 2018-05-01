@@ -26,7 +26,7 @@ const int currentBufferSize = 2*20;
 char* hourlyFileName = "hour.txt";
 const int hourBufferSize = 215;
 char* dailyFileName = "day.txt";
-const int dayBufferSize = 3 * 20;
+const int dayBufferSize = 3 * 50;
 char* forecastFileName = "cast.txt";
 
 int maxTemp = 100;
@@ -193,7 +193,7 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     data["humidity"] = humidity;
 
     delay(2);
-    
+
     // if the file opened okay, write to it:
     if (hourlyFile) {
       // if the file opened okay, write to it:

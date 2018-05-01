@@ -17,6 +17,7 @@ void wipeDown();
 void wipeFade(float brightness);
 void fadeBack();
 void colorFromHour(String hourlyFile);
+void colorFromDay(String dailyFile);
 
 #define PIN    5
 #define N_LEDS 168
@@ -69,6 +70,7 @@ void showTime(){
 
   if (settingBrightness) {
     colorFromSD(currentlyFileName, hourlyFileName, dailyFileName);
+    applySun();
     applyBrightness();
   }
 
@@ -115,6 +117,8 @@ void refreshPixels() {
   Serial.println("Refreshing Pixels");
 
   colorFromSD(currentlyFileName, hourlyFileName, dailyFileName);
+  applySun();
+  applyBrightness();
 
   // for (int i = 0; i < 168; i++){
   //   Serial.print("red: ");
@@ -151,7 +155,7 @@ void applyBrightness(){
     pixels[index].multiply(mult);
 
     if(!wipingDown){
-        strip.setPixelColor(index, pixels[index].red, pixels[index].green, pixels[index].blue);
+      strip.setPixelColor(index, pixels[index].red, pixels[index].green, pixels[index].blue);
     }
   }
 
@@ -187,38 +191,38 @@ void simpleRefresh(){
 }
 
 void wipeDown(){
-    Serial.println("Wiping Down");
+  Serial.println("Wiping Down");
 
-    for (int c = 0; c < 7; c++) {
-      int index = c * 24 + wipeDownColumn;
-      int prev = reIndex(index-1);
-      index = reIndex(index);
+  for (int c = 0; c < 7; c++) {
+    int index = c * 24 + wipeDownColumn;
+    int prev = reIndex(index-1);
+    index = reIndex(index);
 
-      if (wipeDownColumn < 23){
-        strip.setPixelColor(
-          index,
-          pixels[index].red,
-          pixels[index].green,
-          pixels[index].blue
-        );
-      }
-      if (wipeDownColumn > 0) {
-        strip.setPixelColor(
-          prev,
-          pixels[prev].red*refreshBrightness,
-          pixels[prev].green*refreshBrightness,
-          pixels[prev].blue*refreshBrightness
-        );
-      }
+    if (wipeDownColumn < 23){
+      strip.setPixelColor(
+        index,
+        pixels[index].red,
+        pixels[index].green,
+        pixels[index].blue
+      );
     }
-
-    if (wipeDownColumn == 24) {
-      wipeDownColumn = 0;
-      wipingDown = false;
-      return;
-    } else {
-      wipeDownColumn++;
+    if (wipeDownColumn > 0) {
+      strip.setPixelColor(
+        prev,
+        pixels[prev].red*refreshBrightness,
+        pixels[prev].green*refreshBrightness,
+        pixels[prev].blue*refreshBrightness
+      );
     }
+  }
+
+  if (wipeDownColumn == 24) {
+    wipeDownColumn = 0;
+    wipingDown = false;
+    return;
+  } else {
+    wipeDownColumn++;
+  }
 }
 
 void wipeFade(float brightness){
@@ -289,8 +293,8 @@ void windGust(int fadeDelay){
   int now = millis();
 
   if (gustColumn == 8 && timeToFade == 0) {
-      timeToFade = now + fadeDelay;
-      //Serial.println(String("timeToFade: ") + timeToFade);
+    timeToFade = now + fadeDelay;
+    //Serial.println(String("timeToFade: ") + timeToFade);
   } else if (timeToFade != 0 && now > timeToFade) {
     // Serial.println(String("fading back ") + now + ", time is past " + timeToFade);
     gusting = false;
@@ -299,7 +303,7 @@ void windGust(int fadeDelay){
     fadingBack = true;
     return;
   } else if (gustColumn < 8){
-      gustColumn++;
+    gustColumn++;
   }
 }
 
@@ -396,7 +400,7 @@ void fadeBack(){
 
   int fallingDrops = maxDroplets * currentPrecipIntensity;
   if (fallingDrops > 0) {
-      fallingDrops = map(fallingDrops, 0, maxDroplets, 3, maxDroplets);
+    fallingDrops = map(fallingDrops, 0, maxDroplets, 3, maxDroplets);
   }
 
   if (numBack < 167 - 4) {
@@ -461,14 +465,8 @@ boolean colorFromSD(String currentlyFile, String hourlyFile, String dailyFile){
   Serial.println(String("currentPrecipIntensity: ") + currentPrecipIntensity);
   Serial.println(String("currentWindSpeed: ") + currentWindSpeed);
 
-  // JsonObject& hourJson = getJsonObject(hourlyFile);
-  // JsonArray& hourly = hourJson["hourly"];
-  // for (int i = 0; i < 168; i++) {
-  //   String temperature = hourly[i]["temperature"];
-  //   Serial.println(temperature);
-  // }
-
   colorFromHour(hourlyFile);
+  colorFromDay(dailyFile);
 
   return true;
 }
@@ -496,7 +494,6 @@ void colorFromHour(String hourlyFile){
 
         myFile.findUntil((char *)"time\":", (char *) "\n\r");
         time_t t = atoi(myFile.readStringUntil(',').c_str());
-        t = t + timeZone;
         int weekDay = weekday(t) - 1;
         int theHour = hour(t);
 
@@ -540,17 +537,6 @@ void colorFromHour(String hourlyFile){
         Serial.print("clouds: ");
         Serial.println(cloudCover);
 
-        // Serial.print("red: ");
-        // Serial.print(pixels[theIndex].red);
-        // Serial.print(", green: ");
-        // Serial.print(pixels[theIndex].green);
-        // Serial.print(", blue: ");
-        // Serial.print(pixels[theIndex].blue);
-        // Serial.print(", appRed: ");
-        // Serial.print(pixels[theIndex].appRed);
-        // Serial.print(", appBlue: ");
-        // Serial.println(pixels[theIndex].appBlue);
-
         if (i == 167) {
           // close the file:
           myFile.close();
@@ -561,11 +547,48 @@ void colorFromHour(String hourlyFile){
     // close the file:
     myFile.close();
   } else {
-  	// if the file didn't open, print an error:
+    // if the file didn't open, print an error:
     Serial.println("error opening hour.txt");
     return;
   }
 
+}
+
+void colorFromDay(String dailyFile){
+  // open the hourly file.
+  const char* name = dailyFile.c_str();
+  File myFile = SD.open(name);
+  // TextFinder finder(myFile, 20);
+
+
+  if (myFile) {
+    Serial.println(dailyFile);
+
+    // read from the file until there's nothing else in it:
+    while (myFile.available())
+    {
+      for (int i = 0; i < 7; i++) {
+        myFile.findUntil((char *)"sunrise\":", (char *) "\n\r");
+        sunrises[i] = atoi(myFile.readStringUntil(',').c_str());
+        myFile.findUntil((char *)"sunset\":", (char *) "\n\r");
+        sunsets[i] = atoi(myFile.readStringUntil(',').c_str());
+
+        // myFile.findUntil((char *)"cloudCover\":", (char *) "\n\r");
+        // cloudCover[i] = strtod(myFile.readStringUntil('}').c_str(), NULL);
+
+        Serial.print("Sunrise: ");
+        Serial.print(sunrises[i]);
+        Serial.print(" Sunset: ");
+        Serial.println(sunsets[i]);
+
+        if (i == 6) {
+          // close the file:
+          myFile.close();
+          return;
+        }
+      }
+    }
+  }
 }
 
 #endif

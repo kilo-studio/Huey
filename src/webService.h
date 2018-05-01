@@ -196,52 +196,30 @@ void SetSettings(void){
       }
       if (StrContains(command, "dayBrightness")){
         int value = atoi(separator);
-        prevDefaultBrightness = defaultBrightness;
         defaultBrightness = value / 100.0;
         settingBrightness = true;
         Serial.println(String("defaultBrightness: ") + defaultBrightness);
       }
       if (StrContains(command, "nightBrightness")) {
         int value = atoi(separator);
-        prevSunsetBrightness = sunsetBrightness;
         sunsetBrightness = value / 100.0;
         settingBrightness = true;
         Serial.println(String("sunsetBrightness: ") + sunsetBrightness);
+      }
+      if (StrContains(command, "maxTemp")){
+        int value = atoi(separator);
+        maxTemp = value;
+        Serial.println(String("maxTemp: ") + maxTemp);
+      }
+      if (StrContains(command, "minTemp")){
+        int value = atoi(separator);
+        minTemp = value;
+        Serial.println(String("minTemp: ") + minTemp);
       }
     }
     // Find the next command in input string
     command = strtok(0, "&");
   }
-}
-
-// checks if received HTTP request is switching on/off LEDs
-// also saves the state of the LEDs
-void SetLEDs(void)
-{
-  // LED 1 (pin 6)
-  if (StrContains(HTTP_req, "LED1=1")) {
-    LED_state[0] = 1;  // save LED state
-    // digitalWrite(6, HIGH);
-    strip.setPixelColor(0, 100, 100, 100);
-  }
-  else if (StrContains(HTTP_req, "LED1=0")) {
-    LED_state[0] = 0;  // save LED state
-    // digitalWrite(6, LOW);
-    strip.setPixelColor(0, 0, 0, 0);
-  }
-  // LED 2 (pin 7)
-  if (StrContains(HTTP_req, "LED2=1")) {
-    LED_state[1] = 1;  // save LED state
-    // digitalWrite(7, HIGH);
-    strip.setPixelColor(1, 100, 100, 100);
-  }
-  else if (StrContains(HTTP_req, "LED2=0")) {
-    LED_state[1] = 0;  // save LED state
-    // digitalWrite(7, LOW);
-    strip.setPixelColor(1, 0, 0, 0);
-  }
-
-  strip.show();
 }
 
 // send the XML file with analog values, switch status
