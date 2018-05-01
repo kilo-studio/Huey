@@ -28,6 +28,7 @@ File webFile;               // the web page file on the SD card
 char HTTP_req[REQ_BUF_SZ] = {0}; // buffered HTTP request stored as null terminated string
 char req_index = 0;              // index into HTTP_req buffer
 boolean LED_state[2] = {0}; // stores the states of the LEDs
+int runs = 0;
 
 WiFiServer server(80);
 
@@ -59,6 +60,7 @@ void checkForClients(){
     while (client.connected()) {
       if (client.available()) {   // client data available to read
         char c = client.read(); // read 1 byte (character) from client
+        Serial.print(c);
         // limit the size of the stored received HTTP request
         // buffer first part of HTTP request in HTTP_req array (string)
         // leave last element in array as 0 to null terminate string (REQ_BUF_SZ - 1)
@@ -83,8 +85,14 @@ void checkForClients(){
             SetSettings();
             // send XML file containing input states
             XML_response(client);
-          }
-          else {  // web page request
+            if (runs == 0) {
+              Serial.print("runs: ");
+              Serial.println(runs);
+              runs = runs + 1;
+              break;
+            }
+          } else
+          {  // web page request
             // send rest of HTTP header
             client.println("Content-Type: text/html");
             client.println("Connection: keep-alive");
@@ -97,6 +105,8 @@ void checkForClients(){
               }
               webFile.close();
             }
+
+            runs = 0;
           }
           // display received HTTP request on serial port
           Serial.print(HTTP_req);
@@ -118,7 +128,7 @@ void checkForClients(){
         }
       } // end if (client.available())
     } // end while (client.connected())
-    delay(2);      // give the web browser time to receive the data
+    delay(1);      // give the web browser time to receive the data
     client.stop(); // close the connection
   } // end if (client)
 
@@ -186,52 +196,44 @@ void SetSettings(void){
       }
       if (StrContains(command, "dayBrightness")){
         int value = atoi(separator);
-        prevDefaultBrightness = defaultBrightness;
         defaultBrightness = value / 100.0;
         settingBrightness = true;
         Serial.println(String("defaultBrightness: ") + defaultBrightness);
       }
       if (StrContains(command, "nightBrightness")) {
         int value = atoi(separator);
-        prevSunsetBrightness = sunsetBrightness;
         sunsetBrightness = value / 100.0;
         settingBrightness = true;
         Serial.println(String("sunsetBrightness: ") + sunsetBrightness);
+      }
+      if (StrContains(command, "maxTemp")){
+        int value = atoi(separator);
+        maxTemp = value;
+        settingBrightness = true;
+        Serial.println(String("maxTemp: ") + maxTemp);
+      }
+      if (StrContains(command, "minTemp")){
+        int value = atoi(separator);
+        minTemp = value;
+        settingBrightness = true;
+        Serial.println(String("minTemp: ") + minTemp);
+      }
+      if (StrContains(command, "maxCloudCover")) {
+        int value = atoi(separator);
+        maxCloudCover = value / 100.0;
+        settingBrightness = true;
+        Serial.println(String("maxCloudCover: ") + maxCloudCover);
+      }
+      if (StrContains(command, "sunIntensity")) {
+        int value = atoi(separator);
+        sunIntensity = value / 100.0;
+        settingBrightness = true;
+        Serial.println(String("sunIntensity: ") + sunIntensity);
       }
     }
     // Find the next command in input string
     command = strtok(0, "&");
   }
-}
-
-// checks if received HTTP request is switching on/off LEDs
-// also saves the state of the LEDs
-void SetLEDs(void)
-{
-  // LED 1 (pin 6)
-  if (StrContains(HTTP_req, "LED1=1")) {
-    LED_state[0] = 1;  // save LED state
-    // digitalWrite(6, HIGH);
-    strip.setPixelColor(0, 100, 100, 100);
-  }
-  else if (StrContains(HTTP_req, "LED1=0")) {
-    LED_state[0] = 0;  // save LED state
-    // digitalWrite(6, LOW);
-    strip.setPixelColor(0, 0, 0, 0);
-  }
-  // LED 2 (pin 7)
-  if (StrContains(HTTP_req, "LED2=1")) {
-    LED_state[1] = 1;  // save LED state
-    // digitalWrite(7, HIGH);
-    strip.setPixelColor(1, 100, 100, 100);
-  }
-  else if (StrContains(HTTP_req, "LED2=0")) {
-    LED_state[1] = 0;  // save LED state
-    // digitalWrite(7, LOW);
-    strip.setPixelColor(1, 0, 0, 0);
-  }
-
-  strip.show();
 }
 
 // send the XML file with analog values, switch status

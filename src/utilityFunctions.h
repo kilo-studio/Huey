@@ -4,6 +4,7 @@
 #include "getForecast.h"
 #include "getTimeZone.h"
 #include <ArduinoJson.h>
+#include <TextFinder.h>
 #include <SD.h>
 
 void printWiFiStatus();
@@ -16,8 +17,9 @@ uint8_t Red(uint32_t color);
 uint8_t Green(uint32_t color);
 uint8_t Blue(uint32_t color);
 boolean writeJsonToSD(String filename, JsonObject& json);
-char* getJsonSD(String filename);
+String getJsonSD(String filename);
 JsonObject& getJsonObject(String filename);
+boolean colorFromSD(String currentlyFile, String hourlyFile, String dailyFile);
 
 boolean writeJsonToSD(String filename, JsonObject& json){
   // open the file.
@@ -42,46 +44,42 @@ boolean writeJsonToSD(String filename, JsonObject& json){
   }
 }
 
-boolean colorFromSD(String hourlyFile, String dailyFile){
-  JsonObject& currentJson = getJsonObject(hourlyFile);
-
-
-  return true;
-}
-
 JsonObject& getJsonObject(String filename){
   // open the file for reading:
-  char* json = getJsonSD(filename);
+  String json = getJsonSD(filename);
 
-  StaticJsonBuffer<200> jsonBuffer;
+  DynamicJsonBuffer jsonBuffer;
 
   JsonObject& root = jsonBuffer.parseObject(json);
 
   // Step 5
   if (!root.success()) {
     Serial.println("parseObject() failed");
+    Serial.println(json);
   }
 
   return root;
 }
 
-char* getJsonSD(String filename){
+String getJsonSD(String filename){
   // open the file.
   const char* name = filename.c_str();
   File myFile = SD.open(name);
+  TextFinder finder(myFile, 20);
 
   if (myFile) {
     Serial.println(filename);
 
-    char* json;
+    String json;
 
     // read from the file until there's nothing else in it:
     while (myFile.available()) {
-    	//Serial.write(myFile.read());
-      json = json + myFile.read();
+      json = json + (char)myFile.read();
     }
+    Serial.println(json);
     // close the file:
     myFile.close();
+    return json;
   } else {
   	// if the file didn't open, print an error:
     Serial.println("error opening test.txt");
