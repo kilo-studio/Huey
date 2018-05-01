@@ -209,12 +209,26 @@ void SetSettings(void){
       if (StrContains(command, "maxTemp")){
         int value = atoi(separator);
         maxTemp = value;
+        settingBrightness = true;
         Serial.println(String("maxTemp: ") + maxTemp);
       }
       if (StrContains(command, "minTemp")){
         int value = atoi(separator);
         minTemp = value;
+        settingBrightness = true;
         Serial.println(String("minTemp: ") + minTemp);
+      }
+      if (StrContains(command, "maxCloudCover")) {
+        int value = atoi(separator);
+        maxCloudCover = value / 100.0;
+        settingBrightness = true;
+        Serial.println(String("maxCloudCover: ") + maxCloudCover);
+      }
+      if (StrContains(command, "sunIntensity")) {
+        int value = atoi(separator);
+        sunIntensity = value / 100.0;
+        settingBrightness = true;
+        Serial.println(String("sunIntensity: ") + sunIntensity);
       }
     }
     // Find the next command in input string

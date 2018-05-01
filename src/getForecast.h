@@ -161,7 +161,6 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     float humidity = finder.getFloat();
     finder.findUntil((char *)"cloudCover", (char *) "\n\r");
     float cloudCover = finder.getFloat();
-    cloudCover = cloudCover * maxCloudCover;
 
     // int red = map(temp, minTemp, maxTemp, 0, 255);
     // int blue = 255 - red;
