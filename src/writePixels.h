@@ -27,13 +27,13 @@ float breathSpeed = 2;//how fast should we breathe? increment per showDelay
 int breathAmount = 120;//how much should we breathe?
 int breathDirection = -1;
 float breathProgress = 0;
+boolean rainOverride = false;
+float rainIntensityOverride = 0.5;
 int const minDroplets = 2;
 int const maxDroplets = 20;
 Drop drops[maxDroplets];
 float sunsetBrightness = 0.2;//brightness after the sun goes down
-float prevSunsetBrightness = 1;
 float defaultBrightness = 0.5;//brightness before the sun goes down
-float prevDefaultBrightness = 1;
 float refreshBrightness = 0.9;
 
 long refreshInterval = 10L * 60L * 1000L; // delay between updates, in milliseconds
@@ -64,7 +64,7 @@ boolean settingBrightness = false;
 void showTime(){
   long now = millis();
 
-  if (currentPrecipIntensity > 0) {
+  if (currentPrecipIntensity > 0 || rainOverride) {
     rain();
   }
 
@@ -120,18 +120,6 @@ void refreshPixels() {
   applySun();
   applyBrightness();
 
-  // for (int i = 0; i < 168; i++){
-  //   Serial.print("red: ");
-  //   Serial.print(pixels[i].red);
-  //   Serial.print(", green: ");
-  //   Serial.print(pixels[i].green);
-  //   Serial.print(", blue: ");
-  //   Serial.print(pixels[i].blue);
-  //   Serial.print(", appRed: ");
-  //   Serial.print(pixels[i].appRed);
-  //   Serial.print(", appBlue: ");
-  //   Serial.println(pixels[i].appBlue);
-  // }
   settingBrightness = true;
   wipingDown = true;
   Serial.println("Done Refreshing Pixels");
@@ -141,12 +129,10 @@ void applyBrightness(){
   int day = floor(currentIndex / 24);
   int hour = reIndex(currentIndex) % 24;
   float mult = defaultBrightness;
-  // float divide = prevDefaultBrightness;
 
   if (hour <= sunrises[day] || hour >= sunsets[day]) {
     Serial.println("dimming");
     mult = sunsetBrightness;
-    // divide = prevSunsetBrightness;
   }
 
   for (int i = 0; i < 168; i++){
@@ -308,7 +294,13 @@ void windGust(int fadeDelay){
 }
 
 void rain(){
-  int fallingDrops = maxDroplets * currentPrecipIntensity;
+  float intensity = currentPrecipIntensity;
+
+  if (rainOverride) {
+    intensity = rainIntensityOverride;
+  }
+
+  int fallingDrops = maxDroplets * intensity;
   fallingDrops = map(fallingDrops, 0, maxDroplets, minDroplets, maxDroplets);
 
   for (int i = 0; i < fallingDrops; i++) {
@@ -329,14 +321,6 @@ void rainDrop(int dropIndex){
       thePixel.appGreen * 1.2,
       thePixel.appBlue * 1.2
     );
-
-    //Pixel thePixel = pixels[pixelIndex];
-    // strip.setPixelColor(
-    //   pixelIndex,
-    //   thePixel.appRed * theDrop.brightness,
-    //   thePixel.appGreen * theDrop.brightness,
-    //   thePixel.appBlue * theDrop.brightness
-    // );
   }
 
   //int trailIndex = reIndex(pixelIndex-1);
@@ -528,14 +512,14 @@ void colorFromHour(String hourlyFile){
 
         if (i == 0) {currentIndex = theIndex;}//remember where now is in pixel[]
 
-        Serial.print("i: ");
-        Serial.print(i);
-        Serial.print(" weekDay: ");
-        Serial.print(weekDay);
-        Serial.print(", theHour: ");
-        Serial.println(theHour);
-        Serial.print("clouds: ");
-        Serial.println(cloudCover);
+        // Serial.print("i: ");
+        // Serial.print(i);
+        // Serial.print(" weekDay: ");
+        // Serial.print(weekDay);
+        // Serial.print(", theHour: ");
+        // Serial.println(theHour);
+        // Serial.print("clouds: ");
+        // Serial.println(cloudCover);
 
         if (i == 167) {
           // close the file:
@@ -576,10 +560,10 @@ void colorFromDay(String dailyFile){
         // myFile.findUntil((char *)"cloudCover\":", (char *) "\n\r");
         // cloudCover[i] = strtod(myFile.readStringUntil('}').c_str(), NULL);
 
-        Serial.print("Sunrise: ");
-        Serial.print(sunrises[i]);
-        Serial.print(" Sunset: ");
-        Serial.println(sunsets[i]);
+        // Serial.print("Sunrise: ");
+        // Serial.print(sunrises[i]);
+        // Serial.print(" Sunset: ");
+        // Serial.println(sunsets[i]);
 
         if (i == 6) {
           // close the file:

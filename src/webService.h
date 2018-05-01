@@ -230,6 +230,18 @@ void SetSettings(void){
         settingBrightness = true;
         Serial.println(String("sunIntensity: ") + sunIntensity);
       }
+      if (StrContains(command, "rainOverride")) {
+        int value = atoi(separator);
+        rainOverride = value;
+        settingBrightness = true;
+        Serial.println(String("rainOverride: ") + rainOverride);
+      }
+      if (StrContains(command, "rainIntensityOverride")) {
+        int value = atoi(separator);
+        rainIntensityOverride = value / 100.0;
+        settingBrightness = true;
+        Serial.println(String("rainIntensityOverride: ") + rainIntensityOverride);
+      }
     }
     // Find the next command in input string
     command = strtok(0, "&");
