@@ -156,17 +156,10 @@ void loop() {
     Serial.println("Refreshing forecast, and pixels...");
 
     if (connectToDarkSky(lat, lon)){
-        applySun();
         refreshPixels();
         // simpleRefresh();
     }
 
-    // refreshPixels();
-
-    // simpleRefresh();
-
-    // client.stop();
-    // client.flush();
     lastRefresh = now + refreshInterval;
   }
 

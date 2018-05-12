@@ -14,7 +14,7 @@
 #include "getLocation.h"
 #include "getTimeZone.h"
 
-boolean connectToDarkSky(char* latitude, char* longitude);
+boolean connectToDarkSky(String latitude, String longitude);
 void getForecast();
 void storeCurrentlyForecast();
 void storeHourlyForecast();
@@ -137,19 +137,11 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
   //search through the results and create pixels for each hour in a week
   for (int i = 0; i < 168; i++) {
     yield();
-    //showTime();
-    // finder.findUntil("hourly\":", "]");
 
-    // time_t t = timeHunt((char *)"time", timeZone);
     finder.findUntil((char *)"time", (char *) "\n\r");
     time_t t = finder.getValue() + timeZone;
     int weekDay = weekday(t) - 1;
     int theHour = hour(t);
-
-    // float precipProb = floatHunt((char *)"precipProbability");;
-    // int temp = intHunt((char *)"temperature");
-    // int appTemp = intHunt((char *)"apparentTemperature");
-    // float humidity = floatHunt((char *)"humidity");
 
     finder.findUntil((char *)"precipProbability", (char *) "\n\r");
     float precipProb = finder.getFloat();
@@ -162,24 +154,7 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     finder.findUntil((char *)"cloudCover", (char *) "\n\r");
     float cloudCover = finder.getFloat();
 
-    // int red = map(temp, minTemp, maxTemp, 0, 255);
-    // int blue = 255 - red;
-    // int appRed = map(appTemp, minTemp, maxTemp, 0, 255);
-    // int appBlue = 255 - appRed;
-    //
-    // int green = float(255) * precipProb;
-    // if (green > 0) {
-    //   green = map(green, 0, 255, 50, 255);
-    // }
-
-    // int appGreen = green + 40 * humidity;
-    // appGreen = constrain(appGreen, 0, 255);
-
-    // int theIndex = reIndex(weekDay * 24 + theHour);
-    // pixels[theIndex] = Pixel(red, green, blue, appRed, appBlue, appGreen);
-    // pixels[theIndex].multiply(1 - cloudCover);//more cloud coverage should be less bright
-
-    // if (i == 0) {currentIndex = theIndex;}//remember where now is in pixel[]
+    delay(2);
 
     StaticJsonBuffer<hourBufferSize> jsonBuffer;
     JsonObject& hourRoot = jsonBuffer.createObject();
@@ -190,8 +165,6 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     data["apparentTemperature"] = appTemp;
     data["cloudCover"] = cloudCover;
     data["humidity"] = humidity;
-
-    delay(2);
 
     // if the file opened okay, write to it:
     if (hourlyFile) {
@@ -213,22 +186,10 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     Serial.print(weekDay);
     Serial.print(", theHour: ");
     Serial.println(theHour);
-
-    // Serial.print("red: ");
-    // Serial.print(pixels[theIndex].red);
-    // Serial.print(", green: ");
-    // Serial.print(pixels[theIndex].green);
-    // Serial.print(", blue: ");
-    // Serial.print(pixels[theIndex].blue);
-    // Serial.print(", appRed: ");
-    // Serial.print(pixels[theIndex].appRed);
-    // Serial.print(", appBlue: ");
-    // Serial.println(pixels[theIndex].appBlue);
   }
   // if the file opened okay, write to it:
   if (hourlyFile) {
     // if the file opened okay, write to it:
-    // Serialize JSON to file
     hourlyFile.print("]}");
     hourlyFile.close();
     Serial.println("done.");
@@ -262,12 +223,6 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
   finder.findUntil((char *)"daily\":", (char *)"]");
 
   for (int i = 0; i < 7; i++) {
-    //time_t t = timeHunt((char *)"time", timeZone);
-    // int weekDay = weekday(t) - 1;
-    // int theHour = hour(t);
-
-    // time_t sunrise = timeHunt((char *)"sunriseTime", timeZone);
-    // time_t sunset = timeHunt((char *)"sunsetTime", timeZone);
     finder.findUntil((char *)"sunriseTime", (char *) "\n\r");
     time_t sunrise = finder.getValue() + timeZone;
     finder.findUntil((char *)"sunsetTime", (char *) "\n\r");
@@ -278,7 +233,6 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     sunrises[i] = theSunrise;
     sunsets[i] = theSunset;
 
-    // cloudCover[i] = floatHunt((char *)"cloudCover");
     finder.findUntil((char *)"cloudCover", (char *) "\n\r");
     cloudCover[i] = finder.getFloat();
 
@@ -288,7 +242,6 @@ boolean connectToDarkSky(char* latitude, char* longitude) {
     data["sunrise"] = theSunrise;
     data["sunset"] = theSunset;
     data["cloudCover"] = cloudCover;
-    // writeJsonToSD(dailyFileName, root);
 
     // if the file opened okay, write to it:
     if (dailyFile) {
@@ -342,22 +295,5 @@ void applySun() {
     }
   }
 }
-
-// //finder functions
-// time_t timeHunt(char* key, int timezone) {
-//   finder.findUntil(key, (char *) "\n\r");
-//   time_t t = finder.getValue();
-//   return t + timeZone;//get the time and adjust it for the timeZone
-// }
-//
-// int intHunt(char* key){
-//   finder.findUntil(key, (char *) "\n\r");
-//   return finder.getValue();
-// }
-//
-// float floatHunt(char* key){
-//   finder.findUntil(key, (char *) "\n\r");
-//   return finder.getFloat();
-// }
 
 #endif
