@@ -1,22 +1,24 @@
 #ifndef _getLocation_H_
 #define _getLocation_H_
 
+#include <string.h>
+
 boolean getLocation();
 
 //location
-char lat[] = "37.8267";
-char lon[] = "-122.4233";
+char* lat = "37.8267";
+char* lon = "-122.4233";
 
 boolean getLocation(IPAddress IP){
   //location by ip freegeoip.net/json/173.53.85.225
   Serial.println("---------");
   Serial.println("Getting Location from IP...");
-  const char locationHost[] = "freegeoip.net";
+  const char locationHost[] = "ipinfo.io";
   String ipStr = String(IP[0])+"."+String(IP[1])+"."+String(IP[2])+"."+String(IP[3]);
-  String locationURL = "/json/";
+  String locationURL = String("/json");
 
   WiFiClient httpClient;
-  TextFinder httpFinder(httpClient, 20);//finder and wait time in seconds
+  // TextFinder httpFinder(httpClient, 20);//finder and wait time in seconds
   Serial.print(F("connecting to "));
   Serial.println(locationHost);
   const int httpPort = 80;
@@ -39,23 +41,109 @@ boolean getLocation(IPAddress IP){
 
   Serial.println(F("request sent"));
 
-  // delay(250);
-  httpFinder.findUntil((char *)"{", (char *)"\n\r");
-  httpFinder.findUntil((char *)"ip\":", (char *)"\n\r");
-  //Serial.println(httpFinder.getValue());
-  // httpFinder.findUntil("latitude\":", "\n\r");
-  char latBuf[15];
-  httpFinder.getString((char *)"latitude\":", (char *)",\"", latBuf, 15);
-  strcpy(lat, latBuf);
+  delay(250);
+  // Serial.println(httpFinder.findUntil((char *)"{", (char *)"\n\r"));
+  // Serial.println(httpFinder.findUntil((char *)" ", (char *)","));
+  // char ipBuf[20];
+  // httpFinder.getString((char *)"\"", (char *)"\"", ipBuf, 20);
+  // Serial.println(ipBuf);
 
-  char lonBuf[15];
-  httpFinder.getString((char *)"longitude\":", (char *)",\"", lonBuf, 15);
-  strcpy(lon, lonBuf);
-  Serial.println(String(lat)+","+lon);
-
-  // while(httpClient.available()){
-  //    Serial.print(char(httpClient.read()));
+  // if (!httpFinder.findUntil("loc:", "}")){
+  //   Serial.println("couldnt find your precious 'loc:'");
   // }
+  // char latBuf[15];
+  // httpFinder.getString((char *)"loc\": \"", (char *)",", latBuf, 15);
+  // strcpy(lat, latBuf);
+  // Serial.println(String(lat));
+  // //
+  // char lonBuf[15];
+  // httpFinder.getString((char *)",", (char *)"\"", lonBuf, 15);
+  // strcpy(lon, lonBuf);
+  // Serial.println(String(lat)+","+lon);
+
+  // httpFinder.findUntil((char *)"latitude", (char *) "\n\r");
+  // // lat = (char)httpFinder.getValue();
+  // lat=itoa(httpFinder.getValue(), lat, 10);
+  //
+  // httpFinder.findUntil((char *)"longitude", (char *) "\n\r");
+  // // lon = (char)httpFinder.getValue();
+  // lon=itoa(httpFinder.getValue(), lon, 10);
+  // String json = "";
+
+  String buffbuff = "";
+  String preVal = "";
+  String value = "";
+  bool gettingVal = false;
+  bool foundData = false;
+  while(httpClient.available()){
+    char cChar = httpClient.read();
+    // Serial.println(cChar);
+
+    if(cChar == '{'){
+      foundData = true;
+      Serial.println("Found the data!");
+      // json = "{"
+    } else if (cChar == '}') {
+      foundData = false;
+      Serial.println("Done with the data!");
+    }
+
+    // if (foundData) {
+    //   json = json + cChar;
+    // }
+
+    if (foundData) {
+      if (!gettingVal && cChar == '\"') {
+        gettingVal = true;
+      } else if (cChar == '\"') {
+        gettingVal = false;
+        // Serial.print("Got something: ");
+        // Serial.println(value);
+        // Serial.print("previousValue: ");
+        // Serial.println(preVal);
+
+        if (preVal == "ip") {
+          Serial.print(preVal);
+          Serial.print(": ");
+          Serial.println(value);
+        } else if (preVal == "loc") {
+          Serial.print(preVal);
+          Serial.print(": ");
+          Serial.println(value);
+
+          // Token will point to "SEVERAL".
+          int comIndex = value.indexOf(",");
+          Serial.println(comIndex);
+          char * tempValue = new char[value.length() + 1];
+          value.toCharArray(tempValue, value.length()+1);
+          tempValue[value.length()] = '\0';
+          Serial.println(tempValue);
+          lat = strtok(tempValue, ",\n\r");
+          lon = strtok(0, "\n\r");
+          Serial.println(lat);
+          Serial.println(lon);
+
+          // lat = strtok(tempValue, ",");
+          // Serial.println(lat);
+          // lon = strtok(NULL, "\n");
+          // Serial.println(lon);
+          // Serial.println(tempValue);
+
+          // lat = strtok(line, search);
+          // Serial.println(lat);
+
+          // Token will point to "WORDS".
+          // lon = strtok(NULL, search);
+          // Serial.println(lon);
+        }
+
+        preVal = value;
+        value = "";
+      } else if (gettingVal) {
+        value = value + cChar;
+      }
+    }
+  }
 
   httpClient.flush();
   httpClient.stop();

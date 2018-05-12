@@ -14,7 +14,7 @@
 #include "getLocation.h"
 #include "getTimeZone.h"
 
-boolean connectToDarkSky(char* latitude, char* longitude);
+boolean connectToDarkSky(String latitude, String longitude);
 void getForecast();
 void storeCurrentlyForecast();
 void storeHourlyForecast();

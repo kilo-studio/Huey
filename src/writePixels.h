@@ -68,7 +68,7 @@ void showTime(){
     rain();
   }
 
-  if (settingBrightness) {
+  if (settingBrightness && !wipingDown) {
     colorFromSD(currentlyFileName, hourlyFileName, dailyFileName);
     applySun();
     applyBrightness();
@@ -115,13 +115,13 @@ void showTime(){
 
 void refreshPixels() {
   Serial.println("Refreshing Pixels");
+  wipingDown = true;
+  settingBrightness = true;
 
   colorFromSD(currentlyFileName, hourlyFileName, dailyFileName);
   applySun();
   applyBrightness();
 
-  settingBrightness = true;
-  wipingDown = true;
   Serial.println("Done Refreshing Pixels");
 }
 
@@ -387,7 +387,7 @@ void fadeBack(){
     fallingDrops = map(fallingDrops, 0, maxDroplets, 3, maxDroplets);
   }
 
-  if (numBack < 167 - 4) {
+  if (numBack < 167 - 3) {
     if (numBack == lastNumBack) {
       if (repeats > 10) {
         // Serial.println("close as it's going to get");

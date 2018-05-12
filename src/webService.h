@@ -31,6 +31,7 @@ boolean LED_state[2] = {0}; // stores the states of the LEDs
 int runs = 0;
 
 WiFiServer server(80);
+String webSite = "";
 
 // Create a MDNS responder to listen and respond to MDNS name requests.
 WiFiMDNSResponder mdnsResponder;
