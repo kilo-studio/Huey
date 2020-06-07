@@ -8,6 +8,7 @@
 
 #include "main.cpp"
 
+boolean setUpWebService();
 void checkForClients();
 boolean setUpWebService();
 void SetSettings(void);
@@ -259,6 +260,7 @@ void XML_response(WiFiClient cl)
 
   cl.print("<?xml version = \"1.0\" ?>");
   cl.print("<inputs>");
+
   // checkbox LED states
   // LED1
   cl.print("<LED>");
@@ -269,7 +271,7 @@ void XML_response(WiFiClient cl)
     cl.print("unchecked");
   }
   cl.println("</LED>");
-  // button LED states
+
   // LED3
   cl.print("<LED>");
   if (LED_state[1]) {
@@ -279,6 +281,22 @@ void XML_response(WiFiClient cl)
     cl.print("off");
   }
   cl.println("</LED>");
+
+  // latitude
+  cl.print("<latitude>");
+  cl.print(lat);
+  cl.println("</latitude>");
+
+  // longitude
+  cl.print("<longitude>");
+  cl.print(lon);
+  cl.println("</longitude>");
+
+  // dayBrightness
+  cl.print("<dayBrightness>");
+  cl.print(defaultBrightness*100);
+  cl.println("</dayBrightness>");
+
   cl.print("</inputs>");
 }
 

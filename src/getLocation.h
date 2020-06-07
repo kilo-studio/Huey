@@ -18,7 +18,7 @@ boolean getLocation(IPAddress IP){
   String locationURL = String("/json");
 
   WiFiClient httpClient;
-  // TextFinder httpFinder(httpClient, 20);//finder and wait time in seconds
+  TextFinder httpFinder(httpClient, 20);//finder and wait time in seconds
   Serial.print(F("connecting to "));
   Serial.println(locationHost);
   const int httpPort = 80;
@@ -70,6 +70,9 @@ boolean getLocation(IPAddress IP){
   // lon=itoa(httpFinder.getValue(), lon, 10);
   // String json = "";
 
+  if (!httpFinder.findUntil(" ", "\n\r")){
+    Serial.println("couldnt find your precious ' '");
+  }
   String buffbuff = "";
   String preVal = "";
   String value = "";

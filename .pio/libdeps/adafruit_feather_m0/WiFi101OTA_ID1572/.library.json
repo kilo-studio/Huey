@@ -1,0 +1,39 @@
+{
+    "name": "WiFi101OTA", 
+    "version": "1.0.2", 
+    "keywords": [
+        "other"
+    ], 
+    "description": "Update sketches on your board over WiFi", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelsam"
+    ], 
+    "authors": [
+        {
+            "email": "info@arduino.cc", 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Arduino"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/arduino-libraries/WiFi101OTA"
+    }, 
+    "homepage": "http://www.arduino.cc/en/Reference/WiFi101OTA", 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 1572
+}

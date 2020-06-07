@@ -1,0 +1,37 @@
+{
+    "name": "TextFinder", 
+    "keywords": [
+        "text", 
+        "parser", 
+        "stream"
+    ], 
+    "description": "Library for extracting information from a stream of data", 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/tardate/TextFinder"
+    }, 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "timsp430", 
+        "titiva", 
+        "teensy", 
+        "freescalekinetis", 
+        "ststm32", 
+        "nordicnrf51", 
+        "nxplpc"
+    ], 
+    "version": "bc754bcc6c", 
+    "authors": [
+        {
+            "email": "gallagher.paul@gmail.com", 
+            "url": "https://github.com/tardate", 
+            "maintainer": false, 
+            "name": "Paul Gallagher"
+        }
+    ], 
+    "id": 180
+}

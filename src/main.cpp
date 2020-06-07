@@ -62,9 +62,9 @@ const int ledPin = 13; // LED pin for connectivity status indicator
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+  // while (!Serial) {
+  //   ; // wait for serial port to connect. Needed for native USB port only
+  // }
 
   strip.begin();
   strip.setBrightness(255);
@@ -145,12 +145,6 @@ void loop() {
   checkForClients();
 
   long now = millis();
-  // if (now % 1000 == 0) {
-  //   Serial.print("now: ");
-  //   Serial.println(now);
-  //   Serial.print("lastRefresh: ");
-  //   Serial.println(lastRefresh);
-  // }
   if (now > lastRefresh) {
     Serial.println("---------");
     Serial.println("Refreshing forecast, and pixels...");
